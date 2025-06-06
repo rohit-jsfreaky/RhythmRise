@@ -42,6 +42,8 @@ export default function App() {
     );
   }
 
+  console.log("Player setup complete");
+
   return (
     <NavigationContainer>
       <StatusBar style="dark" />
