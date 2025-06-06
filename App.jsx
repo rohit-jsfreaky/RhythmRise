@@ -9,7 +9,7 @@ import TrackPlayer, {
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import Home from "./src/Screens/Home/Home";
+import HomeScreen from "./src/Screens/Home/HomeScreen";
 
 const Stack = createNativeStackNavigator();
 const testSong = {
@@ -42,16 +42,16 @@ export default function App() {
     );
   }
 
-  console.log("Player setup complete");
+  // console.log("Player setup complete");
+
 
   return (
     <NavigationContainer>
       <StatusBar style="dark" />
 
-      <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={Home} />
-        {/* <Stack.Screen name="Player" component={PlayerScreen} /> */}
-      </Stack.Navigator>
+       <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen name="Home" component={HomeScreen} />
+      </Stack.Navigator> 
     </NavigationContainer>
   );
 }
