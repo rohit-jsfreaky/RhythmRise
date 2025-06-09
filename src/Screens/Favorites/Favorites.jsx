@@ -1,22 +1,18 @@
-import {
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import TopTitle from "../../Components/TopTitle";
 import TrackPlayer from "react-native-track-player";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
+import PlayListModal from "../../Components/PlayListModal";
+import SongsList from "../../Components/SongsList";
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedSong, setSelectedSong] = useState(null);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -26,6 +22,19 @@ const Favorites = () => {
     };
     loadFavorites();
   }, []);
+
+  const isFavorite = (song) => favorites.some((fav) => fav.url === song.url);
+
+  const toggleFavorite = async (song) => {
+    let updated;
+    if (isFavorite(song)) {
+      updated = favorites.filter((fav) => fav.url !== song.url);
+    } else {
+      updated = [song, ...favorites.filter((fav) => fav.url !== song.url)];
+    }
+    setFavorites(updated);
+    await SecureStore.setItemAsync("favorites", JSON.stringify(updated));
+  };
 
   // Play all favorites, start from pressed song
   const playFavoriteSong = async (song) => {
@@ -62,72 +71,52 @@ const Favorites = () => {
     const [mins, secs] = timeStr.split(":").map(Number);
     return mins * 60 + secs;
   };
+
+  const addToPlaylist = (song) => {
+    setSelectedSong(song);
+    setShowModal(true);
+  };
+
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="dark" backgroundColor="#fff" />
       <TopTitle title="Favorites" />
 
-      <View style={{ flex: 1, paddingVertical: 20 }}>
+      <View
+        style={{
+          flex: 1,
+          paddingVertical: 20,
+          ...(favorites.length === 0
+            ? { justifyContent: "center", alignItems: "center" }
+            : {}),
+        }}
+      >
         {favorites.length === 0 ? (
-          <Text style={{ color: "#888", marginTop: 20 }}>
+          <Text
+            style={{
+              color: "#888",
+              marginTop: 20,
+              fontWeight: "bold",
+              fontSize: 30,
+            }}
+          >
             No favorites yet.
           </Text>
         ) : (
-          <FlatList
+          <SongsList
+            addToPlaylist={addToPlaylist}
             data={favorites}
-            keyExtractor={(item) => item.url}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  backgroundColor: "#f7f7f7",
-                  borderRadius: 12,
-                  paddingVertical: 10,
-                  marginBottom: 16,
-                  paddingHorizontal: 16,
-                }}
-                onPress={() => playFavoriteSong(item)}
-              >
-                <Image
-                  source={{ uri: item.thumbnail }}
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 8,
-                    marginRight: 12,
-                    backgroundColor: "#eee",
-                  }}
-                />
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: "bold",
-                      color: "#222",
-                      marginBottom: 2,
-                    }}
-                    numberOfLines={1}
-                  >
-                    {item.title}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      color: "#888",
-                      marginBottom: 2,
-                    }}
-                    numberOfLines={1}
-                  >
-                    {item.uploader}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: "#aaa" }}>
-                    {item.duration}
-                  </Text>
-                </View>
-                <Ionicons name="heart" size={22} color="#e74c3c" />
-              </TouchableOpacity>
-            )}
+            isFavorite={isFavorite}
+            playSong={playFavoriteSong}
+            toggleFavorite={toggleFavorite}
+          />
+        )}
+        {showModal && (
+          <PlayListModal
+            selectedSong={selectedSong}
+            setSelectedSong={setSelectedSong}
+            setShowModal={setShowModal}
+            showModal={showModal}
           />
         )}
       </View>

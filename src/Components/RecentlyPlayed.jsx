@@ -5,13 +5,18 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Modal,
+  ToastAndroid,
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useEffect } from "react";
+import PlayListModal from "./PlayListModal";
 
 const RecentlyPlayed = ({ playRecentSong, columns }) => {
   const [favorites, setFavorites] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedSong, setSelectedSong] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -33,6 +38,11 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
     await SecureStore.setItemAsync("favorites", JSON.stringify(updated));
   };
 
+  const addToPlaylist = (song) => {
+    setSelectedSong(song);
+    setShowModal(true);
+  };
+
   return (
     <View style={{ marginBottom: 24 }}>
       <Text style={{ fontWeight: "bold", fontSize: 18, marginBottom: 10 }}>
@@ -47,41 +57,63 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
           renderItem={({ item: col }) => (
             <View style={{ marginRight: 16 }}>
               {col.map((song) => (
-                <TouchableOpacity
+                <View
+                  style={{ flexDirection: "row", alignItems: "center" }}
                   key={song.url}
-                  style={styles.recentSongItem}
-                  onPress={() => playRecentSong(song)}
-                  activeOpacity={0.8}
                 >
-                  <Image
-                    source={{ uri: song.thumbnail }}
-                    style={styles.recentArtwork}
-                  />
-                  <View style={styles.songInfo}>
-                    <Text style={styles.recentTitle} numberOfLines={1}>
-                      {song.title}
-                    </Text>
-                    <Text style={styles.recentArtist} numberOfLines={1}>
-                      {song.uploader}
-                    </Text>
-                    <Text style={styles.recentDuration}>{song.duration}</Text>
-                  </View>
                   <TouchableOpacity
-                    onPress={() => toggleFavorite(song)}
-                    style={{ marginLeft: 8 }}
+                    onPress={() => playRecentSong(song)}
+                    style={styles.recentSongItem}
+                    activeOpacity={0.8}
                   >
-                    <Ionicons
-                      name={isFavorite(song) ? "heart" : "heart-outline"}
-                      size={22}
-                      color={isFavorite(song) ? "#e74c3c" : "#aaa"}
+                    <Image
+                      source={{ uri: song.thumbnail }}
+                      style={styles.recentArtwork}
                     />
+                    <View style={styles.songInfo}>
+                      <Text style={styles.recentTitle} numberOfLines={1}>
+                        {song.title}
+                      </Text>
+                      <Text style={styles.recentArtist} numberOfLines={1}>
+                        {song.uploader}
+                      </Text>
+                      <Text style={styles.recentDuration}>{song.duration}</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => toggleFavorite(song)}
+                      style={{ marginLeft: 8 }}
+                    >
+                      <Ionicons
+                        name={isFavorite(song) ? "heart" : "heart-outline"}
+                        size={22}
+                        color={isFavorite(song) ? "#e74c3c" : "#aaa"}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => addToPlaylist(song)}
+                      style={{ marginLeft: 8, padding: 4 }}
+                    >
+                      <Ionicons
+                        name="ellipsis-vertical"
+                        size={22}
+                        color="#888"
+                      />
+                    </TouchableOpacity>
                   </TouchableOpacity>
-                </TouchableOpacity>
+                </View>
               ))}
             </View>
           )}
         />
       </View>
+      {showModal && (
+        <PlayListModal
+          selectedSong={selectedSong}
+          setSelectedSong={setSelectedSong}
+          setShowModal={setShowModal}
+          showModal={showModal}
+        />
+      )}
     </View>
   );
 };

@@ -6,12 +6,12 @@ import TrackPlayer, { State } from "react-native-track-player";
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import HomeScreen from "./HomeScreen";
-import PlayerScreen from "./PlayerScreen";
+import { MenuProvider } from "react-native-popup-menu";
 import QueueScreen from "./src/Screens/Queue/QueueScreen";
 import MiniPlayer from "./src/Components/MiniPlayer";
 import Tabs from "./src/Screens/Tabs/Tabs";
 import Favorites from "./src/Screens/Favorites/Favorites";
+import Playlist from "./src/Screens/Playlist/Playlist";
 
 const Stack = createNativeStackNavigator();
 
@@ -45,33 +45,36 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      <StatusBar style="dark" />
-      <Stack.Navigator initialRouteName="Tabs">
-        <Stack.Screen
-          name="Tabs"
-          component={Tabs}
-          options={{ headerShown: false }}
-        />
-        {/* <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ title: "Rhythm Rise" }}
-        /> */}
-        <Stack.Screen
-          name="Favorites"
-          component={Favorites}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Queue"
-          component={QueueScreen}
-          options={{ title: "Queue" }}
-        />
-      </Stack.Navigator>
+    <MenuProvider>
+      <NavigationContainer>
+        <StatusBar style="dark" />
+        <Stack.Navigator initialRouteName="Tabs">
+          <Stack.Screen
+            name="Tabs"
+            component={Tabs}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Favorites"
+            component={Favorites}
+            options={{ headerShown: false }}
+          />
 
-      {/* {isTrackActive && <MiniPlayer />} */}
-    </NavigationContainer>
+          <Stack.Screen
+            name="Playlist"
+            component={Playlist}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Queue"
+            component={QueueScreen}
+            options={{ title: "Queue" }}
+          />
+        </Stack.Navigator>
+
+        {/* {isTrackActive && <MiniPlayer />} */}
+      </NavigationContainer>
+    </MenuProvider>
   );
 }
 
