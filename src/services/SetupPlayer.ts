@@ -1,4 +1,4 @@
-import TrackPlayer, { Capability, AppKilledPlaybackBehavior } from 'react-native-track-player';
+import TrackPlayer, { Capability, AppKilledPlaybackBehavior, IOSCategory, IOSCategoryMode, IOSCategoryOptions, AndroidAudioContentType } from 'react-native-track-player';
 
 export const setupPlayer = async () => {
   try {
@@ -8,19 +8,11 @@ export const setupPlayer = async () => {
       maxBuffer: 50, // Default is 50
       playBuffer: 2.5, // Default is 2.5
       backBuffer: 0, // Default is 0
-      // Auto update metadata when track changes
-      updateMetadataInterval: 5, // Every 5 seconds
       // Better audio quality
-      iosCategory: 'playback',
-      iosCategoryMode: 'default',
-      iosCategoryOptions: ['allowBluetooth', 'allowBluetoothA2DP', 'mixWithOthers'],
-      androidAudioContentType: 'music',
-      androidAudioAttributes: [
-        {
-          usage: 'media',
-          contentType: 'music',
-        },
-      ],
+      iosCategory: IOSCategory.Playback,
+      iosCategoryMode: IOSCategoryMode.Default,
+      iosCategoryOptions: [IOSCategoryOptions.AllowBluetooth, IOSCategoryOptions.AllowBluetoothA2DP, IOSCategoryOptions.MixWithOthers],
+      androidAudioContentType: AndroidAudioContentType.Music,
     });
 
     await TrackPlayer.updateOptions({
@@ -43,11 +35,7 @@ export const setupPlayer = async () => {
       // Continue playback when app is in background
       android: {
         appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
-      },
-      // Controls the audio focus behavior in Android
-      androidAudioFocus: {
-        duckSensitivity: 'high',
-        pauseWhenInterrupted: true,
+        alwaysPauseOnInterruption: true,
       },
     });
 

@@ -6,10 +6,11 @@ import TrackPlayer, { State } from "react-native-track-player";
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import HomeScreen from "./src/Screens/Home/HomeScreen";
+import HomeScreen from "./HomeScreen";
 import PlayerScreen from "./src/Screens/Player/PlayerScreen";
 import QueueScreen from "./src/Screens/Queue/QueueScreen";
 import MiniPlayer from "./src/Components/MiniPlayer";
+import Tabs from "./src/Screens/Tabs/Tabs";
 
 const Stack = createNativeStackNavigator();
 
@@ -45,12 +46,17 @@ export default function App() {
   return (
     <NavigationContainer>
       <StatusBar style="dark" />
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator initialRouteName="Tabs">
         <Stack.Screen
+          name="Tabs"
+          component={Tabs} 
+          options={{ headerShown: false }} 
+        />
+        {/* <Stack.Screen
           name="Home"
           component={HomeScreen}
           options={{ title: "Rhythm Rise" }}
-        />
+        /> */}
         <Stack.Screen
           name="Player"
           component={PlayerScreen}
