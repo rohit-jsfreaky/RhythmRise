@@ -1,37 +1,37 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View, Button, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { setupPlayer } from "./src/services/SetupPlayer";
-import TrackPlayer, {
-  State,
-  usePlaybackState,
-} from "react-native-track-player";
+import TrackPlayer, { State } from "react-native-track-player";
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "./src/Screens/Home/HomeScreen";
+import PlayerScreen from "./src/Screens/Player/PlayerScreen";
+import QueueScreen from "./src/Screens/Queue/QueueScreen";
+import MiniPlayer from "./src/Components/MiniPlayer";
 
 const Stack = createNativeStackNavigator();
-const testSong = {
-  id: "1",
-  url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", // your song URL
-  title: "Test Track",
-  artist: "Test Artist",
-};
 
 export default function App() {
   const [playSetup, setPlaySetup] = useState(false);
+  const [isTrackActive, setIsTrackActive] = useState(false);
 
   useEffect(() => {
     const playerSet = async () => {
       const isSetup = await setupPlayer();
-      if (isSetup) {
-        await TrackPlayer.reset(); // Clear any existing queue
-        await TrackPlayer.add(testSong); // Add test song
-      }
       setPlaySetup(isSetup);
     };
     playerSet();
+
+    // Check if a track is active
+    const checkTrackStatus = async () => {
+      const currentTrack = await TrackPlayer.getCurrentTrack();
+      setIsTrackActive(currentTrack !== null);
+    };
+
+    const interval = setInterval(checkTrackStatus, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   if (!playSetup) {
@@ -42,16 +42,28 @@ export default function App() {
     );
   }
 
-  // console.log("Player setup complete");
-
-
   return (
     <NavigationContainer>
       <StatusBar style="dark" />
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ title: "Rhythm Rise" }}
+        />
+        <Stack.Screen
+          name="Player"
+          component={PlayerScreen}
+          options={{ title: "Now Playing" }}
+        />
+        <Stack.Screen
+          name="Queue"
+          component={QueueScreen}
+          options={{ title: "Queue" }}
+        />
+      </Stack.Navigator>
 
-       <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={HomeScreen} />
-      </Stack.Navigator> 
+      {isTrackActive && <MiniPlayer />}
     </NavigationContainer>
   );
 }
