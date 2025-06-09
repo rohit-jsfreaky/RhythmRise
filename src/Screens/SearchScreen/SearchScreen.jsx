@@ -1,26 +1,37 @@
 import {
-  ActivityIndicator,
-  FlatList,
-  Image,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import TopTitle from "../../Components/TopTitle";
 import SearchBar from "../../Components/SearchBar";
+import SongsListSkeletonView from "../../Components/SongsListSkeletonView";
+import TrackPlayer from "react-native-track-player";
+
+import * as SecureStore from "expo-secure-store";
+import SearchQuery from "../../Components/SearchQuery";
+import SearchSongsList from "../../Components/SearchSongsList";
 
 const SearchScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const route = useRoute();
-  const { search } = route.params || {};
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentTrack, setCurrentTrack] = useState(null);
+  const route = useRoute();
+  const { search } = route.params || {};
+  const navigation = useNavigation();
+  const [searchHistory, setSearchHistory] = useState([]);
+
+  useEffect(() => {
+    (async () => {
+      const stored = await SecureStore.getItemAsync("searchHistory");
+      if (stored) setSearchHistory(JSON.parse(stored));
+    })();
+  }, []);
 
   useEffect(() => {
     if (search) {
@@ -51,49 +62,99 @@ const SearchScreen = () => {
     }
   };
 
+  const handleClear = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    // Update history
+    let updated = [
+      searchQuery,
+      ...searchHistory.filter((q) => q !== searchQuery),
+    ];
+    if (updated.length > 10) updated = updated.slice(0, 10);
+    setSearchHistory(updated);
+    await SecureStore.setItemAsync("searchHistory", JSON.stringify(updated));
+    fetchSongs(searchQuery);
+  };
+
+  const getSecondsFromDuration = (timeStr) => {
+    const [mins, secs] = timeStr.split(":").map(Number);
+    return mins * 60 + secs;
+  };
+
+  const onSongPress = async (song) => {
+    try {
+      await TrackPlayer.reset();
+      await TrackPlayer.add({
+        id: song.url,
+        url: `https://rhythm-rise-backend.vercel.app/api/music/get-audio-stream?url=${encodeURIComponent(song.url)}&quality=high`,
+        title: song.title,
+        artist: song.uploader,
+        artwork: song.thumbnail,
+        duration: getSecondsFromDuration(song.duration),
+      });
+      await TrackPlayer.play();
+      // Store in recently played
+      let recent = [];
+      const stored = await SecureStore.getItemAsync("recentlyPlayed");
+      if (stored) recent = JSON.parse(stored);
+      // Remove if already exists, then add to front
+      recent = [song, ...recent.filter(s => s.url !== song.url)];
+      if (recent.length > 20) recent = recent.slice(0, 20); // Limit to 20
+      await SecureStore.setItemAsync("recentlyPlayed", JSON.stringify(recent));
+      navigation.navigate("Player");
+    } catch (error) {
+      console.log("Error playing song:", error);
+    }
+  };
+
+  const handleQueryTap = async (query) => {
+    setSearchQuery(query);
+    fetchSongs(query);
+  };
+
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="dark" backgroundColor="#fff" />
       <TopTitle title="Search Songs" />
 
       <SearchBar
-        fetchSongs={fetchSongs}
+        fetchSongs={handleSearch}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        showClear={searchResults.length > 0}
+        onClear={handleClear}
       />
 
       <View style={styles.resultsContainer}>
         {isLoading ? (
-          <ActivityIndicator size="large" color="#1DB954" />
+          <View>
+            {Array.from({ length: 10 }).map((_, index) => (
+              <SongsListSkeletonView key={index} />
+            ))}
+          </View>
         ) : searchResults.length === 0 ? (
-          <Text style={styles.noResults}>Search for music to get started</Text>
+          searchHistory.length === 0 ? (
+            <Text style={styles.noResults}>
+              Search for music to get started
+            </Text>
+          ) : (
+            <SearchQuery
+              searchHistory={searchHistory}
+              setSearchHistory={setSearchHistory}
+              handleQueryTap={handleQueryTap}
+            />
+          )
         ) : (
-          <FlatList
-            showsVerticalScrollIndicator={false}
-            data={searchResults}
-            keyExtractor={(item) => item.url}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.songItem}
-                onPress={() => console.log("Selected song:", item)}
-              >
-                <Image
-                  source={{ uri: item.thumbnail }}
-                  style={styles.thumbnail}
-                />
-                <View style={styles.songInfo}>
-                  <Text style={styles.songTitle} numberOfLines={1}>
-                    {item.title}
-                  </Text>
-                  <Text style={styles.songDetails}>
-                    {item.uploader} • {item.duration}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
-            contentContainerStyle={{
-              paddingBottom: currentTrack ? 60 : 0,
-            }}
+          <SearchSongsList
+            isLoading={isLoading}
+            searchResults={searchResults}
+            setSearchResults={setSearchResults}
+            onSongPress={onSongPress}
+            currentTrack={currentTrack}
           />
         )}
       </View>
@@ -121,32 +182,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
     color: "#666",
-  },
-  songItem: {
-    flexDirection: "row",   
-    paddingVertical: 10,
-
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    alignItems: "center",
-  },
-  thumbnail: {
-    width: 50,
-    height: 50,
-    borderRadius: 4,
-  },
-  songInfo: {
-    marginLeft: 10,
-    flex: 1,
-  },
-  songTitle: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
-  },
-  songDetails: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 2,
   },
 });

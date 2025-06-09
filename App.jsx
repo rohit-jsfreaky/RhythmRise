@@ -7,10 +7,11 @@ import TrackPlayer, { State } from "react-native-track-player";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "./HomeScreen";
-import PlayerScreen from "./src/Screens/Player/PlayerScreen";
+import PlayerScreen from "./PlayerScreen";
 import QueueScreen from "./src/Screens/Queue/QueueScreen";
 import MiniPlayer from "./src/Components/MiniPlayer";
 import Tabs from "./src/Screens/Tabs/Tabs";
+import Favorites from "./src/Screens/Favorites/Favorites";
 
 const Stack = createNativeStackNavigator();
 
@@ -49,8 +50,8 @@ export default function App() {
       <Stack.Navigator initialRouteName="Tabs">
         <Stack.Screen
           name="Tabs"
-          component={Tabs} 
-          options={{ headerShown: false }} 
+          component={Tabs}
+          options={{ headerShown: false }}
         />
         {/* <Stack.Screen
           name="Home"
@@ -58,9 +59,9 @@ export default function App() {
           options={{ title: "Rhythm Rise" }}
         /> */}
         <Stack.Screen
-          name="Player"
-          component={PlayerScreen}
-          options={{ title: "Now Playing" }}
+          name="Favorites"
+          component={Favorites}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="Queue"
@@ -69,7 +70,7 @@ export default function App() {
         />
       </Stack.Navigator>
 
-      {isTrackActive && <MiniPlayer />}
+      {/* {isTrackActive && <MiniPlayer />} */}
     </NavigationContainer>
   );
 }

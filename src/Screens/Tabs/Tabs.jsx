@@ -1,28 +1,13 @@
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { Feather } from "@expo/vector-icons";
-import { StatusBar } from "expo-status-bar";
-import { SafeAreaView } from "react-native-safe-area-context";
-import TopTitle from "../../Components/TopTitle";
-import SearchBar from "../../Components/SearchBar";
-import { useNavigation, useRoute } from "@react-navigation/native";
 import HomeScreen from "../Home/HomeScreen";
 import SearchScreen from "../SearchScreen/SearchScreen";
+import PlayerScreen from "../Player/PlayerScreen";
+import LibraryScreen from "../LibraryScreen/LibraryScreen";
 
 const Tab = createMaterialTopTabNavigator();
-
-const PlayerScreen = () => (
-  <View style={styles.screen}>
-    <Text>Player Screen</Text>
-  </View>
-);
-
-const LibraryScreen = () => (
-  <View style={styles.screen}>
-    <Text>Library Screen</Text>
-  </View>
-);
 
 const ProfileScreen = () => (
   <View style={styles.screen}>
