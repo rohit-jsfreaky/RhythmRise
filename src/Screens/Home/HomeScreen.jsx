@@ -68,7 +68,7 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <StatusBar style="dark" backgroundColor="#fff" />
+      <StatusBar style="light" backgroundColor="#080B38" />
       <TopTitle title="RyhthmRise" />
 
       <SearchBar
@@ -92,6 +92,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "#080B38",
   },
 });

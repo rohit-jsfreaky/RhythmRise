@@ -47,7 +47,7 @@ export default function App() {
   return (
     <MenuProvider>
       <NavigationContainer>
-        <StatusBar style="dark" />
+        <StatusBar style="light" backgroundColor="#080B38"/>
         <Stack.Navigator initialRouteName="Tabs">
           <Stack.Screen
             name="Tabs"

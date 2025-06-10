@@ -52,11 +52,11 @@ function MyTabBar({ state, descriptors, navigation, position }) {
               <Feather
                 name={icons[route.name]}
                 size={22}
-                color={isFocused ? "#fff" : "#555"}
+                color={isFocused ? "#fff" : "#ffffff"}
               />
             </View>
             <Text
-              style={{ color: isFocused ? "#4b7bec" : "#555", fontSize: 10 }}
+              style={{ color: isFocused ? "#ffffff" : "#ffffff", fontSize: 10 }}
             >
               {route.name}
             </Text>
@@ -94,24 +94,24 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: "row",
-    backgroundColor: "#fff",
+    backgroundColor: "#080B38",
   },
   tabButton: {
     flex: 1,
     alignItems: "center",
     paddingVertical: 10,
-    backgroundColor: "#fff",
+    backgroundColor: "#080B38",
+    color: "#fff",
   },
   tabActive: {
-    backgroundColor: "#4b7bec", // Highlight background for active tab
+    backgroundColor: "#36195B", // Highlight background for active tab
   },
   iconWrapper: {
     padding: 8,
     borderRadius: 50,
     backgroundColor: "transparent", // default no color
   },
-
   iconActive: {
-    backgroundColor: "#4b7bec", // active circle bg
+    backgroundColor: "#36195B", // active circle bg
   },
 });

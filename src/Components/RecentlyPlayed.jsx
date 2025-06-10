@@ -5,18 +5,19 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Modal,
-  ToastAndroid,
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { Animated } from "react-native";
 import PlayListModal from "./PlayListModal";
 
 const RecentlyPlayed = ({ playRecentSong, columns }) => {
   const [favorites, setFavorites] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState(null);
+  const [menuOpenFor, setMenuOpenFor] = useState(null);
+  const menuAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     (async () => {
@@ -24,6 +25,22 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
       if (stored) setFavorites(JSON.parse(stored));
     })();
   }, []);
+
+  useEffect(() => {
+    if (menuOpenFor) {
+      Animated.timing(menuAnim, {
+        toValue: 1,
+        duration: 180,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(menuAnim, {
+        toValue: 0,
+        duration: 120,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [menuOpenFor]);
 
   const isFavorite = (song) => favorites.some((fav) => fav.url === song.url);
 
@@ -44,7 +61,7 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
   };
 
   return (
-    <View style={{ marginBottom: 24 }}>
+    <View style={{ paddingBottom: 24 }}>
       <Text style={{ fontWeight: "bold", fontSize: 18, marginBottom: 10 }}>
         Recently Played
       </Text>
@@ -90,7 +107,10 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
                       />
                     </TouchableOpacity>
                     <TouchableOpacity
-                      onPress={() => addToPlaylist(song)}
+                      onPress={() => {
+                        menuAnim.setValue(0);
+                        setMenuOpenFor(song.url);
+                      }}
                       style={{ marginLeft: 8, padding: 4 }}
                     >
                       <Ionicons
@@ -99,6 +119,67 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
                         color="#888"
                       />
                     </TouchableOpacity>
+                    {menuOpenFor === song.url && (
+                      <>
+                        {/* Overlay to close menu on outside click */}
+                        <TouchableOpacity
+                          activeOpacity={1}
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            zIndex: 98,
+                          }}
+                          onPress={() => setMenuOpenFor(null)}
+                        />
+                        <Animated.View
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            right: 10,
+                            backgroundColor: "#fff",
+                            borderRadius: 10,
+                            shadowColor: "#000",
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.1,
+                            shadowRadius: 6,
+                            elevation: 6,
+                            zIndex: 100,
+                            minWidth: 140,
+                            opacity: menuAnim,
+                            transform: [
+                              {
+                                translateY: menuAnim.interpolate({
+                                  inputRange: [0, 1],
+                                  outputRange: [20, 0],
+                                }),
+                              },
+                            ],
+                          }}
+                        >
+                          <TouchableOpacity
+                            onPress={() => {
+                              setMenuOpenFor(null);
+                              setSelectedSong(song);
+                              setShowModal(true);
+                            }}
+                            style={{ padding: 12 }}
+                          >
+                            <Text style={{ color: "#222" }}>
+                              Add to Playlist
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => setMenuOpenFor(null)}
+                            style={{ padding: 12 }}
+                          >
+                            <Text style={{ color: "#888" }}>Cancel</Text>
+                          </TouchableOpacity>
+                        </Animated.View>
+                      </>
+                    )}
                   </TouchableOpacity>
                 </View>
               ))}

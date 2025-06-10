@@ -1,5 +1,6 @@
 import {
   Modal,
+  Pressable,
   StyleSheet,
   Text,
   ToastAndroid,
@@ -53,7 +54,10 @@ const PlayListModal = ({
       visible={showModal}
       onRequestClose={() => setShowModal(false)}
     >
-      <View style={styles.modalOverlay}>
+      <Pressable
+        style={styles.modalOverlay}
+        onPress={() => setShowModal(false)}
+      >
         <View style={styles.modalCard}>
           <Text style={styles.modalTitle}>Add to Playlist</Text>
           {playlists.length === 0 ? (
@@ -77,7 +81,7 @@ const PlayListModal = ({
             <Text style={styles.modalCancelText}>Cancel</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 };
