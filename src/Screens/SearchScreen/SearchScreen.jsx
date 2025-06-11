@@ -8,10 +8,10 @@ import TopTitle from "../../Components/TopTitle";
 import SearchBar from "../../Components/SearchBar";
 import SongsListSkeletonView from "../../Components/SongsListSkeletonView";
 import TrackPlayer from "react-native-track-player";
-
 import * as SecureStore from "expo-secure-store";
 import SearchQuery from "../../Components/SearchQuery";
 import SearchSongsList from "../../Components/SearchSongsList";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const SearchScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,6 +22,7 @@ const SearchScreen = () => {
   const { search } = route.params || {};
   const navigation = useNavigation();
   const [searchHistory, setSearchHistory] = useState([]);
+  const { theme } = useTheme();
 
   useEffect(() => {
     (async () => {
@@ -116,9 +117,9 @@ const SearchScreen = () => {
   };
 
   return (
-    <View style={styles.scrollView}>
+    <View style={[styles.scrollView, { backgroundColor: theme.colors.background }]}>
       <LinearGradient
-        colors={["rgba(123, 77, 255, 0.15)", "rgba(8, 11, 56, 1)"]}
+        colors={theme.colors.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
@@ -145,7 +146,7 @@ const SearchScreen = () => {
             ) : searchResults.length === 0 ? (
               searchHistory.length === 0 ? (
                 <View style={styles.emptyStateContainer}>
-                  <Text style={styles.noResults}>
+                  <Text style={[styles.noResults, { color: theme.colors.textSecondary }]}>
                     Search for music to get started
                   </Text>
                 </View>
@@ -177,7 +178,6 @@ export default SearchScreen;
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    backgroundColor: "#080B38",
   },
   gradient: {
     flex: 1,
@@ -191,7 +191,6 @@ const styles = StyleSheet.create({
   },
   resultsContainer: {
     flex: 1,
-    //  // Space for player
   },
   emptyStateContainer: {
     flex: 1,
@@ -202,7 +201,6 @@ const styles = StyleSheet.create({
   noResults: {
     textAlign: "center",
     fontSize: 16,
-    color: "#A0A6B1",
     opacity: 0.8,
   },
 });

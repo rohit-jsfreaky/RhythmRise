@@ -3,7 +3,6 @@ import {
   Text,
   View,
   TouchableOpacity,
-  Image,
   ScrollView,
 } from "react-native";
 import React, { useEffect, useState } from "react";
@@ -16,6 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import SongsList from "../../Components/SongsList";
 import PlayListModal from "../../Components/PlayListModal";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const Playlist = () => {
   const [favorites, setFavorites] = useState([]);
@@ -25,6 +25,7 @@ const Playlist = () => {
   const navigation = useNavigation();
   const [showModal, setShowModal] = useState(false);
   const { title } = route.params;
+  const { theme } = useTheme();
 
   useEffect(() => {
     (async () => {
@@ -129,10 +130,17 @@ const Playlist = () => {
     }
   };
 
+  // Generate dynamic playlist icon based on title
+  const getPlaylistIcon = (title) => {
+    const icons = ["musical-notes", "library", "headset", "radio", "disc", "albums"];
+    const index = title.length % icons.length;
+    return icons[index];
+  };
+
   return (
-    <View style={styles.scrollView}>
+    <View style={[styles.scrollView, { backgroundColor: theme.colors.background }]}>
       <LinearGradient
-        colors={["rgba(123, 77, 255, 0.15)", "#080B38"]}
+        colors={theme.colors.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
@@ -140,53 +148,141 @@ const Playlist = () => {
         <SafeAreaView style={styles.screen}>
           <StatusBar style="light" />
 
+          {/* Modern Header */}
           <View style={styles.header}>
             <TouchableOpacity
               onPress={() => navigation.goBack()}
-              style={styles.backButton}
+              style={[
+                styles.backButton,
+                { backgroundColor: theme.colors.glassBackground }
+              ]}
             >
-              <Ionicons name="chevron-back" size={26} color="#F8F9FE" />
+              <Ionicons name="chevron-back" size={24} color={theme.colors.textPrimary} />
             </TouchableOpacity>
-            <View style={styles.titleContainer}>
-              <Text style={styles.title} numberOfLines={1}>
-                {title}
-              </Text>
-              <Text style={styles.songCount}>
-                {songs.length} {songs.length === 1 ? "song" : "songs"}
-              </Text>
+            
+            <View style={styles.headerContent}>
+              <View style={styles.titleContainer}>
+                <Text style={[styles.title, { color: theme.colors.textPrimary }]} numberOfLines={1}>
+                  {title}
+                </Text>
+                <Text style={[styles.songCount, { color: theme.colors.textSecondary }]}>
+                  {songs.length} {songs.length === 1 ? "song" : "songs"}
+                </Text>
+              </View>
+              
+              {/* Playlist Icon */}
+              <View style={[
+                styles.playlistIconContainer,
+                { backgroundColor: theme.colors.primary + "33" } // 20% opacity
+              ]}>
+                <Ionicons 
+                  name={getPlaylistIcon(title)} 
+                  size={24} 
+                  color={theme.colors.primary} 
+                />
+              </View>
             </View>
           </View>
 
+          {/* Enhanced Action Bar */}
           {songs.length > 0 && (
             <View style={styles.actionBar}>
               <TouchableOpacity
-                style={styles.playAllButton}
+                style={[
+                  styles.playAllButton,
+                  {
+                    shadowColor: theme.colors.shadowColor,
+                  }
+                ]}
                 onPress={playAllSongs}
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={["#18B5FF", "#7B4DFF"]}
+                  colors={theme.colors.activeGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.playAllGradient}
                 >
-                  <Ionicons name="play" size={18} color="#F8F9FE" />
-                  <Text style={styles.playAllText}>Play All</Text>
+                  <Ionicons name="play" size={20} color={theme.colors.textPrimary} />
+                  <Text style={[styles.playAllText, { color: theme.colors.textPrimary }]}>
+                    Play All
+                  </Text>
                 </LinearGradient>
+              </TouchableOpacity>
+              
+              {/* Shuffle Button */}
+              <TouchableOpacity
+                style={[
+                  styles.shuffleButton,
+                  { backgroundColor: theme.colors.glassBackground }
+                ]}
+                onPress={() => {
+                  // Add shuffle functionality
+                  playAllSongs();
+                }}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="shuffle" size={20} color={theme.colors.textSecondary} />
               </TouchableOpacity>
             </View>
           )}
 
+          {/* Content Container */}
           <View style={styles.contentContainer}>
             {songs.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <View style={styles.emptyIconContainer}>
-                  <Ionicons name="musical-notes" size={48} color="#7B4DFF" />
-                </View>
-                <Text style={styles.emptyTitle}>Playlist is empty</Text>
-                <Text style={styles.emptySubtitle}>
+                <LinearGradient
+                  colors={[theme.colors.primary + "40", theme.colors.secondary + "20"]} // 25%, 12% opacity
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={[
+                    styles.emptyIconContainer,
+                    { 
+                      backgroundColor: theme.colors.glassBackground,
+                      shadowColor: theme.colors.shadowColor,
+                    }
+                  ]}
+                >
+                  <Ionicons 
+                    name="musical-notes" 
+                    size={48} 
+                    color={theme.colors.textPrimary} 
+                  />
+                </LinearGradient>
+                
+                <Text style={[styles.emptyTitle, { color: theme.colors.textPrimary }]}>
+                  Playlist is empty
+                </Text>
+                <Text style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}>
                   Add songs from the search tab
                 </Text>
+                
+                {/* Enhanced Empty State Tips */}
+                <View style={styles.emptyTips}>
+                  <View style={styles.tipItem}>
+                    <View style={[
+                      styles.tipIcon,
+                      { backgroundColor: theme.colors.accent + "33" } // 20% opacity
+                    ]}>
+                      <Ionicons name="search" size={16} color={theme.colors.accent} />
+                    </View>
+                    <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                      Search for songs in the Search tab
+                    </Text>
+                  </View>
+                  
+                  <View style={styles.tipItem}>
+                    <View style={[
+                      styles.tipIcon,
+                      { backgroundColor: theme.colors.secondary + "33" } // 20% opacity
+                    ]}>
+                      <Ionicons name="add" size={16} color={theme.colors.secondary} />
+                    </View>
+                    <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                      Tap the menu button to add to playlist
+                    </Text>
+                  </View>
+                </View>
               </View>
             ) : (
               <SongsList
@@ -219,7 +315,6 @@ export default Playlist;
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    backgroundColor: "#080B38",
   },
   gradient: {
     flex: 1,
@@ -231,59 +326,88 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
     marginVertical: 16,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginBottom: 16,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   titleContainer: {
     flex: 1,
+    marginRight: 16,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
-    color: "#F8F9FE",
-    marginBottom: 4,
+    marginBottom: 6,
+    lineHeight: 34,
   },
   songCount: {
-    fontSize: 14,
-    color: "#A0A6B1",
-    marginBottom: 4,
+    fontSize: 15,
+    opacity: 0.8,
+  },
+  playlistIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   actionBar: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 24,
+    gap: 12,
   },
   playAllButton: {
-    borderRadius: 20,
+    flex: 1,
+    borderRadius: 16,
     overflow: "hidden",
-    shadowColor: "#7B4DFF",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
   },
   playAllGradient: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    justifyContent: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 16,
   },
   playAllText: {
-    color: "#F8F9FE",
     fontWeight: "600",
-    fontSize: 14,
-    marginLeft: 6,
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  shuffleButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   contentContainer: {
     flex: 1,
@@ -292,25 +416,54 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 80,
+    paddingHorizontal: 40,
   },
   emptyIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(123, 77, 255, 0.15)",
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 24,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
-    color: "#F8F9FE",
     marginBottom: 8,
+    textAlign: "center",
   },
   emptySubtitle: {
     fontSize: 16,
-    color: "#A0A6B1",
+    textAlign: "center",
+    marginBottom: 32,
+    opacity: 0.8,
+  },
+  emptyTips: {
+    alignSelf: "stretch",
+    maxWidth: 300,
+  },
+  tipItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    paddingHorizontal: 16,
+  },
+  tipIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  tipText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    opacity: 0.8,
   },
 });

@@ -5,48 +5,57 @@ import { SafeAreaView, TouchableOpacity } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useTheme } from "../contexts/ThemeContext";
 
 const { width } = Dimensions.get("window");
 const ARTWORK_SIZE = width * 0.75;
 
 const NoTrackPlayer = () => {
-  const navgation = useNavigation();
+  const navigation = useNavigation();
+  const { theme } = useTheme();
+
   return (
     <LinearGradient
-      colors={["rgba(123, 77, 255, 0.15)", "#080B38"]}
-      style={styles.container}
+      colors={theme.colors.gradient}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       <StatusBar style="light" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={() => navgation.navigate("Home")}
+            onPress={() => navigation.navigate("Home")}
             style={styles.headerButton}
           >
-            <Ionicons name="arrow-back" size={28} color="#F8F9FE" />
+            <Ionicons name="arrow-back" size={28} color={theme.colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Now Playing</Text>
+          <Text style={[styles.headerTitle, { color: theme.colors.textPrimary }]}>
+            Now Playing
+          </Text>
           <TouchableOpacity style={styles.headerButton}>
-            <Ionicons name="ellipsis-vertical" size={24} color="#F8F9FE" />
+            <Ionicons name="ellipsis-vertical" size={24} color={theme.colors.textPrimary} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.emptyStateContainer}>
-          <View style={styles.artworkShadow}>
+          <View style={[styles.artworkShadow, { shadowColor: theme.colors.shadowColor }]}>
             <LinearGradient
-              colors={["#36195B", "#522377"]}
+              colors={[theme.colors.accent, theme.colors.primary + "80"]} // 50% opacity
               style={[styles.artwork, styles.emptyArtwork]}
             >
               <Ionicons
                 name="musical-notes"
                 size={80}
-                color="rgba(248, 249, 254, 0.3)"
+                color={theme.colors.textPrimary + "4D"} // 30% opacity
               />
             </LinearGradient>
           </View>
 
-          <Text style={styles.emptyTitle}>No Track Playing</Text>
-          <Text style={styles.emptySubtitle}>Play a song to see it here</Text>
+          <Text style={[styles.emptyTitle, { color: theme.colors.textPrimary }]}>
+            No Track Playing
+          </Text>
+          <Text style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}>
+            Play a song to see it here
+          </Text>
 
           <View style={{ height: 200 }} />
         </View>
@@ -60,7 +69,6 @@ export default NoTrackPlayer;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#080B38",
     paddingTop: 40,
   },
   safeArea: {
@@ -83,7 +91,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#F8F9FE",
     letterSpacing: 0.3,
   },
   emptyArtwork: {
@@ -99,7 +106,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   artworkShadow: {
-    shadowColor: "#7B4DFF",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.25,
     shadowRadius: 20,
@@ -109,18 +115,15 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#F8F9FE",
     marginTop: 30,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    color: "#A0A6B1",
   },
   artwork: {
     width: ARTWORK_SIZE,
     height: ARTWORK_SIZE,
     borderRadius: 24,
-    backgroundColor: "#36195B",
   },
 });

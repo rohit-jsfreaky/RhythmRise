@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../contexts/ThemeContext";
 
 const SearchSongsList = ({
   isLoading,
@@ -17,6 +18,8 @@ const SearchSongsList = ({
   onSongPress,
   currentTrack,
 }) => {
+  const { theme } = useTheme();
+
   return (
     <FlatList
       refreshControl={
@@ -26,8 +29,8 @@ const SearchSongsList = ({
             onRefresh={() => {
               setSearchResults([]);
             }}
-            colors={["#7B4DFF"]}
-            tintColor="#7B4DFF"
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
           />
         ) : null
       }
@@ -37,25 +40,30 @@ const SearchSongsList = ({
       keyExtractor={(item) => item.url}
       renderItem={({ item }) => (
         <TouchableOpacity
-          style={styles.songItem}
+          style={[styles.songItem, { backgroundColor: theme.colors.glassBackground }]}
           onPress={() => onSongPress(item)}
           activeOpacity={0.8}
         >
-          <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
+          <Image 
+            source={{ uri: item.thumbnail }} 
+            style={[styles.thumbnail, { backgroundColor: theme.colors.secondary + '30' }]} 
+          />
           <View style={styles.songInfo}>
-            <Text style={styles.songTitle} numberOfLines={1}>
+            <Text style={[styles.songTitle, { color: theme.colors.textPrimary }]} numberOfLines={1}>
               {item.title}
             </Text>
-            <Text style={styles.songUploader} numberOfLines={1}>
+            <Text style={[styles.songUploader, { color: theme.colors.textSecondary }]} numberOfLines={1}>
               {item.uploader}
             </Text>
-            <Text style={styles.songDuration}>{item.duration}</Text>
+            <Text style={[styles.songDuration, { color: theme.colors.textSecondary }]}>
+              {item.duration}
+            </Text>
           </View>
           <TouchableOpacity
             onPress={() => onSongPress(item)}
-            style={styles.playButton}
+            style={[styles.playButton, { backgroundColor: theme.colors.primary + '40' }]}
           >
-            <Ionicons name="play" size={22} color="#F8F9FE" />
+            <Ionicons name="play" size={22} color={theme.colors.textPrimary} />
           </TouchableOpacity>
         </TouchableOpacity>
       )}
@@ -74,7 +82,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     marginBottom: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
     borderRadius: 12,
     alignItems: "center",
   },
@@ -82,7 +89,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 10,
-    backgroundColor: "rgba(24, 181, 255, 0.2)",
   },
   songInfo: {
     marginLeft: 16,
@@ -91,24 +97,20 @@ const styles = StyleSheet.create({
   songTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#F8F9FE",
     marginBottom: 2,
   },
   songUploader: {
     fontSize: 13,
-    color: "#A0A6B1",
     marginBottom: 2,
   },
   songDuration: {
     fontSize: 12,
-    color: "#A0A6B1",
     opacity: 0.8,
   },
   playButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(123, 77, 255, 0.3)",
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 10,

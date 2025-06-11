@@ -17,6 +17,7 @@ import TopTitle from "../../Components/TopTitle";
 import PlaylistCardList from "../../Components/PlaylistCardList";
 import DeletePlaylistModal from "../../Components/DeletePlaylistModal";
 import RenamePlaylistModal from "../../Components/RenamePlaylistModal";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const LibraryScreen = () => {
   const [playlists, setPlaylists] = useState([]);
@@ -26,6 +27,7 @@ const LibraryScreen = () => {
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [renameValue, setRenameValue] = useState("");
   const [menuOpenFor, setMenuOpenFor] = useState(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     (async () => {
@@ -50,7 +52,7 @@ const LibraryScreen = () => {
     setPlaylistToDelete(null);
   };
 
-  const getPlaylistColumns = (data, columns = 3) => {
+  const getPlaylistColumns = (data, columns = 2) => {
     const chunked = Array.from({ length: columns }, () => []);
     data.forEach((item, idx) => {
       chunked[idx % columns].push(item);
@@ -58,16 +60,16 @@ const LibraryScreen = () => {
     return chunked;
   };
 
-  const playlistColumns = getPlaylistColumns(playlists, 3);
+  const playlistColumns = getPlaylistColumns(playlists, 2);
 
   return (
     <ScrollView
-      style={styles.scrollView}
+      style={[styles.scrollView, { backgroundColor: theme.colors.background }]}
       contentContainerStyle={{ flexGrow: 1 }}
       showsVerticalScrollIndicator={false}
     >
       <LinearGradient
-        colors={['rgba(123, 77, 255, 0.15)', '#080B38']}
+        colors={theme.colors.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
@@ -77,25 +79,41 @@ const LibraryScreen = () => {
           <TopTitle title="Library" />
           
           <View style={styles.createPlaylistSection}>
-            <Text style={styles.heading}>Create Playlist</Text>
+            <Text style={[styles.heading, { color: theme.colors.textPrimary }]}>
+              Create Playlist
+            </Text>
             <View style={styles.inputRow}>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.glassBackground,
+                    color: theme.colors.textPrimary,
+                  }
+                ]}
                 placeholder="Playlist title"
-                placeholderTextColor="#A0A6B1"
+                placeholderTextColor={theme.colors.textSecondary}
                 value={newTitle}
                 onChangeText={setNewTitle}
-                selectionColor="#7B4DFF"
-                color="#F8F9FE"
+                selectionColor={theme.colors.primary}
               />
-              <TouchableOpacity style={styles.addBtn} onPress={createPlaylist}>
+              <TouchableOpacity 
+                style={[
+                  styles.addBtn,
+                  {
+                    shadowColor: theme.colors.shadowColor,
+                  }
+                ]} 
+                onPress={createPlaylist}
+              >
                 <LinearGradient
-                  colors={['#18B5FF', '#7B4DFF']}
+                  colors={theme.colors.activeGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.addBtnGradient}
                 >
-                  <Ionicons name="add" size={24} color="#F8F9FE" />
+                  <Ionicons name="add" size={24} color={theme.colors.textPrimary} />
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -105,13 +123,26 @@ const LibraryScreen = () => {
             <FavoritesCard />
           </View>
           
-          <Text style={styles.heading}>Your Playlists</Text>
+          <Text style={[styles.heading, { color: theme.colors.textPrimary }]}>
+            Your Playlists
+          </Text>
           <View style={styles.playlistsContainer}>
             {playlists.length === 0 ? (
               <View style={styles.emptyPlaylistsContainer}>
-                <Ionicons name="musical-notes" size={48} color="rgba(248, 249, 254, 0.2)" />
-                <Text style={styles.emptyPlaylistsText}>No playlists yet</Text>
-                <Text style={styles.emptyPlaylistsSubText}>
+                <View style={[
+                  styles.emptyIconContainer,
+                  { backgroundColor: theme.colors.glassBackground }
+                ]}>
+                  <Ionicons 
+                    name="musical-notes" 
+                    size={48} 
+                    color={theme.colors.textSecondary + "33"} // 20% opacity
+                  />
+                </View>
+                <Text style={[styles.emptyPlaylistsText, { color: theme.colors.textPrimary }]}>
+                  No playlists yet
+                </Text>
+                <Text style={[styles.emptyPlaylistsSubText, { color: theme.colors.textSecondary }]}>
                   Create your first playlist above
                 </Text>
               </View>
@@ -167,7 +198,6 @@ const LibraryScreen = () => {
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    backgroundColor: "#080B38",
   },
   gradient: {
     flex: 1,
@@ -182,7 +212,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 16,
-    color: "#F8F9FE",
   },
   createPlaylistSection: {
     marginBottom: 24,
@@ -194,17 +223,13 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "rgba(248, 249, 254, 0.15)",
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    color: "#F8F9FE",
     fontSize: 15,
   },
   addBtn: {
     marginLeft: 12,
-    shadowColor: "#7B4DFF",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -226,19 +251,25 @@ const styles = StyleSheet.create({
   emptyPlaylistsContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 40,
+    marginTop: 60,
     opacity: 0.8,
   },
+  emptyIconContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   emptyPlaylistsText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: "#F8F9FE",
-    marginTop: 12,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   emptyPlaylistsSubText: {
     fontSize: 14,
-    color: "#A0A6B1",
+    textAlign: 'center',
   },
 });
 

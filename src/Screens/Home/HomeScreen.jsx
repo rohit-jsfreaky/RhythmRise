@@ -17,11 +17,14 @@ import { FlatList, Image, TouchableOpacity } from "react-native";
 import TrackPlayer from "react-native-track-player";
 import RecentlyPlayed from "../../Components/RecentlyPlayed";
 import { BlurView } from "expo-blur";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const HomeScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [recentlyPlayed, setRecentlyPlayed] = useState([]);
   const navigation = useNavigation();
+  const { theme } = useTheme();
+
   const fetchSongs = () => {
     navigation.navigate("Search", {
       search: searchQuery,
@@ -75,9 +78,9 @@ const HomeScreen = () => {
   const columns = getColumns(recentlyPlayed, 3);
 
   return (
-    <View style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <View style={[styles.scrollView, { backgroundColor: theme.colors.background }]}>
       <LinearGradient
-        colors={["rgba(123, 77, 255, 0.15)", "rgba(8, 11, 56, 1)"]}
+        colors={theme.colors.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
@@ -96,7 +99,9 @@ const HomeScreen = () => {
           />
 
           <View style={styles.featuredSection}>
-            <Text style={styles.sectionTitle}>Featured Today</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>
+              Featured Today
+            </Text>
             <TouchableOpacity style={styles.featuredCard}>
               <ImageBackground
                 source={{
@@ -106,11 +111,15 @@ const HomeScreen = () => {
                 imageStyle={{ borderRadius: 16 }}
               >
                 <LinearGradient
-                  colors={["transparent", "rgba(8, 11, 56, 0.8)"]}
+                  colors={["transparent", theme.colors.background + "CC"]}
                   style={styles.featuredGradient}
                 >
-                  <Text style={styles.featuredTitle}>Weekly Top Hits</Text>
-                  <Text style={styles.featuredSubtitle}>48 trending songs</Text>
+                  <Text style={[styles.featuredTitle, { color: theme.colors.textPrimary }]}>
+                    Weekly Top Hits
+                  </Text>
+                  <Text style={[styles.featuredSubtitle, { color: theme.colors.textPrimary }]}>
+                    48 trending songs
+                  </Text>
                 </LinearGradient>
               </ImageBackground>
             </TouchableOpacity>
@@ -130,7 +139,6 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    backgroundColor: "#080B38",
   },
   gradient: {
     flex: 1,
@@ -155,14 +163,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   profileIconBg: {
-    backgroundColor: "#7B4DFF",
     height: "100%",
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
   },
   profileInitial: {
-    color: "#F8F9FE",
     fontSize: 18,
     fontWeight: "bold",
   },
@@ -172,7 +178,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#F8F9FE",
     marginBottom: 16,
   },
   featuredCard: {
@@ -192,13 +197,11 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   featuredTitle: {
-    color: "#F8F9FE",
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 4,
   },
   featuredSubtitle: {
-    color: "#F8F9FE",
     opacity: 0.8,
     fontSize: 14,
   },

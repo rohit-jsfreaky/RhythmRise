@@ -12,6 +12,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Animated } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import PlayListModal from "./PlayListModal";
+import { useTheme } from "../contexts/ThemeContext";
 
 const RecentlyPlayed = ({ playRecentSong, columns }) => {
   const [favorites, setFavorites] = useState([]);
@@ -19,6 +20,7 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
   const [selectedSong, setSelectedSong] = useState(null);
   const [menuOpenFor, setMenuOpenFor] = useState(null);
   const menuAnim = useRef(new Animated.Value(0)).current;
+  const { theme } = useTheme();
 
   useEffect(() => {
     (async () => {
@@ -59,9 +61,13 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.heading}>Recently Played</Text>
+        <Text style={[styles.heading, { color: theme.colors.textPrimary }]}>
+          Recently Played
+        </Text>
         <TouchableOpacity style={styles.seeAll}>
-          <Text style={styles.seeAllText}>See All</Text>
+          <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>
+            See All
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -77,21 +83,23 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
                 <View style={{ position: "relative" }} key={song.url}>
                   <TouchableOpacity
                     onPress={() => playRecentSong(song)}
-                    style={styles.recentSongItem}
+                    style={[styles.recentSongItem, { backgroundColor: theme.colors.glassBackground }]}
                     activeOpacity={0.8}
                   >
                     <Image
                       source={{ uri: song.thumbnail }}
-                      style={styles.recentArtwork}
+                      style={[styles.recentArtwork, { backgroundColor: theme.colors.secondary }]}
                     />
                     <View style={styles.songInfo}>
-                      <Text style={styles.recentTitle} numberOfLines={1}>
+                      <Text style={[styles.recentTitle, { color: theme.colors.textPrimary }]} numberOfLines={1}>
                         {song.title}
                       </Text>
-                      <Text style={styles.recentArtist} numberOfLines={1}>
+                      <Text style={[styles.recentArtist, { color: theme.colors.textSecondary }]} numberOfLines={1}>
                         {song.uploader}
                       </Text>
-                      <Text style={styles.recentDuration}>{song.duration}</Text>
+                      <Text style={[styles.recentDuration, { color: theme.colors.textSecondary }]}>
+                        {song.duration}
+                      </Text>
                     </View>
                   </TouchableOpacity>
                   <View style={styles.actionButtons}>
@@ -102,7 +110,7 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
                       <Ionicons
                         name={isFavorite(song) ? "heart" : "heart-outline"}
                         size={22}
-                        color={isFavorite(song) ? "#e74c3c" : "#F8F9FE"}
+                        color={isFavorite(song) ? theme.colors.errorColor : theme.colors.textPrimary}
                       />
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -115,7 +123,7 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
                       <Ionicons
                         name="ellipsis-vertical"
                         size={22}
-                        color="#F8F9FE"
+                        color={theme.colors.textPrimary}
                       />
                     </TouchableOpacity>
                   </View>
@@ -140,9 +148,9 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
                           position: "absolute",
                           top: 50,
                           right: 10,
-                          backgroundColor: "#10133E",
+                          backgroundColor: theme.colors.surface,
                           borderRadius: 12,
-                          shadowColor: "#000",
+                          shadowColor: theme.colors.shadowColor,
                           shadowOffset: { width: 0, height: 8 },
                           shadowOpacity: 0.15,
                           shadowRadius: 12,
@@ -150,6 +158,8 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
                           zIndex: 100,
                           minWidth: 160,
                           overflow: 'hidden',
+                          borderWidth: 1,
+                          borderColor: theme.colors.border,
                           opacity: menuAnim,
                           transform: [
                             {
@@ -172,7 +182,7 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
                             alignItems: 'center',
                             padding: 16,
                             borderBottomWidth: 1,
-                            borderBottomColor: 'rgba(160, 166, 177, 0.1)',
+                            borderBottomColor: theme.colors.border,
                           }}
                           activeOpacity={0.7}
                         >
@@ -180,15 +190,15 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
                             width: 32,
                             height: 32,
                             borderRadius: 16,
-                            backgroundColor: 'rgba(123, 77, 255, 0.2)',
+                            backgroundColor: theme.colors.primary + '20',
                             justifyContent: 'center',
                             alignItems: 'center',
                             marginRight: 12,
                           }}>
-                            <Ionicons name="musical-notes" size={16} color="#7B4DFF" />
+                            <Ionicons name="musical-notes" size={16} color={theme.colors.primary} />
                           </View>
                           <Text style={{ 
-                            color: "#F8F9FE", 
+                            color: theme.colors.textPrimary, 
                             fontSize: 14, 
                             fontWeight: '500' 
                           }}>
@@ -209,15 +219,15 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
                             width: 32,
                             height: 32,
                             borderRadius: 16,
-                            backgroundColor: 'rgba(160, 166, 177, 0.1)',
+                            backgroundColor: theme.colors.textSecondary + '20',
                             justifyContent: 'center',
                             alignItems: 'center',
                             marginRight: 12,
                           }}>
-                            <Ionicons name="close" size={16} color="#A0A6B1" />
+                            <Ionicons name="close" size={16} color={theme.colors.textSecondary} />
                           </View>
                           <Text style={{ 
-                            color: "#A0A6B1", 
+                            color: theme.colors.textSecondary, 
                             fontSize: 14, 
                             fontWeight: '500' 
                           }}>
@@ -260,21 +270,18 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#F8F9FE",
   },
   seeAll: {
     paddingVertical: 4,
     paddingHorizontal: 12,
   },
   seeAllText: {
-    color: "#7B4DFF",
     fontSize: 14,
     fontWeight: "600",
   },
   recentSongItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.08)",
     borderRadius: 12,
     padding: 12,
     marginBottom: 16,
@@ -285,7 +292,6 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 10,
     marginRight: 12,
-    backgroundColor: "#18B5FF",
   },
   songInfo: {
     flex: 1,
@@ -295,17 +301,14 @@ const styles = StyleSheet.create({
   recentTitle: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#F8F9FE",
     marginBottom: 2,
   },
   recentArtist: {
     fontSize: 13,
-    color: "#A0A6B1",
     marginBottom: 4,
   },
   recentDuration: {
     fontSize: 12,
-    color: "#A0A6B1",
     opacity: 0.7,
   },
   actionButtons: {

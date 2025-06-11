@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../contexts/ThemeContext";
 
 const PlayerMenu = ({
   showMenu,
@@ -19,6 +20,7 @@ const PlayerMenu = ({
 }) => {
   const menuAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (showMenu) {
@@ -68,8 +70,8 @@ const PlayerMenu = ({
         ]}
       >
         <LinearGradient
-          colors={["#10133E", "rgba(16, 19, 62, 0.98)"]}
-          style={styles.menuGradient}
+          colors={theme.colors.cardGradient}
+          style={[styles.menuGradient, { borderColor: theme.colors.border }]}
         >
           {trackInPlaylists.length > 0 ? (
             <TouchableOpacity
@@ -80,12 +82,14 @@ const PlayerMenu = ({
               <View
                 style={[
                   styles.menuIconBg,
-                  { backgroundColor: "rgba(231, 76, 60, 0.2)" },
+                  { backgroundColor: theme.colors.errorColor + "33" }, // 20% opacity
                 ]}
               >
-                <Ionicons name="remove-circle" size={16} color="#e74c3c" />
+                <Ionicons name="remove-circle" size={16} color={theme.colors.errorColor} />
               </View>
-              <Text style={styles.menuText}>Remove from Playlist</Text>
+              <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>
+                Remove from Playlist
+              </Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -93,14 +97,16 @@ const PlayerMenu = ({
               onPress={handleAddToPlaylist}
               activeOpacity={0.7}
             >
-              <View style={styles.menuIconBg}>
-                <Ionicons name="musical-notes" size={16} color="#7B4DFF" />
+              <View style={[styles.menuIconBg, { backgroundColor: theme.colors.primary + "33" }]}>
+                <Ionicons name="musical-notes" size={16} color={theme.colors.primary} />
               </View>
-              <Text style={styles.menuText}>Add to Playlist</Text>
+              <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>
+                Add to Playlist
+              </Text>
             </TouchableOpacity>
           )}
 
-          <View style={styles.menuSeparator} />
+          <View style={[styles.menuSeparator, { backgroundColor: theme.colors.border }]} />
 
           <TouchableOpacity
             style={styles.menuItem}
@@ -113,12 +119,14 @@ const PlayerMenu = ({
             <View
               style={[
                 styles.menuIconBg,
-                { backgroundColor: "rgba(46, 204, 113, 0.2)" },
+                { backgroundColor: theme.colors.successColor + "33" }, // 20% opacity
               ]}
             >
-              <Ionicons name="download-outline" size={16} color="#2ecc71" />
+              <Ionicons name="download-outline" size={16} color={theme.colors.successColor} />
             </View>
-            <Text style={styles.menuText}>Download</Text>
+            <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>
+              Download
+            </Text>
           </TouchableOpacity>
         </LinearGradient>
       </Animated.View>
@@ -154,7 +162,6 @@ const styles = StyleSheet.create({
   menuGradient: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   menuItem: {
     flexDirection: "row",
@@ -164,20 +171,17 @@ const styles = StyleSheet.create({
   },
   menuSeparator: {
     height: 1,
-    backgroundColor: "rgba(160, 166, 177, 0.1)",
     marginHorizontal: 16,
   },
   menuIconBg: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(123, 77, 255, 0.2)",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
   },
   menuText: {
-    color: "#F8F9FE",
     fontSize: 14,
     fontWeight: "500",
   },

@@ -10,12 +10,14 @@ import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
 import PlayListModal from "../../Components/PlayListModal";
 import SongsList from "../../Components/SongsList";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState(null);
   const navigation = useNavigation();
+  const { theme } = useTheme();
 
   useEffect(() => {
     const loadFavorites = async () => {
@@ -80,9 +82,9 @@ const Favorites = () => {
   };
 
   return (
-    <View style={styles.scrollView}>
+    <View style={[styles.scrollView, { backgroundColor: theme.colors.background }]}>
       <LinearGradient
-        colors={["rgba(123, 77, 255, 0.15)", "#080B38"]}
+        colors={theme.colors.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
@@ -94,22 +96,82 @@ const Favorites = () => {
           <View style={styles.contentContainer}>
             {favorites.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <View style={styles.emptyIconContainer}>
-                  <Ionicons name="heart" size={48} color="#7B4DFF" />
-                </View>
-                <Text style={styles.emptyTitle}>No favorites yet</Text>
-                <Text style={styles.emptySubtitle}>
+                <LinearGradient
+                  colors={[theme.colors.errorColor + "40", theme.colors.errorColor + "20"]} // 25%, 12% opacity
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={[
+                    styles.emptyIconContainer,
+                    { 
+                      backgroundColor: theme.colors.glassBackground,
+                      shadowColor: theme.colors.shadowColor,
+                    }
+                  ]}
+                >
+                  <Ionicons name="heart" size={48} color={theme.colors.errorColor} />
+                </LinearGradient>
+                <Text style={[styles.emptyTitle, { color: theme.colors.textPrimary }]}>
+                  No favorites yet
+                </Text>
+                <Text style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}>
                   Songs you love will appear here
                 </Text>
+                <View style={styles.emptyTip}>
+                  <View style={[
+                    styles.tipIconContainer,
+                    { backgroundColor: theme.colors.primary + "33" } // 20% opacity
+                  ]}>
+                    <Ionicons name="information-circle" size={20} color={theme.colors.primary} />
+                  </View>
+                  <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                    Tap the heart icon on any song to add it here
+                  </Text>
+                </View>
               </View>
             ) : (
-              <SongsList
-                addToPlaylist={addToPlaylist}
-                data={favorites}
-                isFavorite={isFavorite}
-                playSong={playFavoriteSong}
-                toggleFavorite={toggleFavorite}
-              />
+              <View style={styles.songsContainer}>
+                {/* Statistics Card */}
+                <View style={[
+                  styles.statsCard,
+                  {
+                    backgroundColor: theme.colors.glassBackground,
+                    borderColor: theme.colors.border,
+                    shadowColor: theme.colors.shadowColor,
+                  }
+                ]}>
+                  <LinearGradient
+                    colors={[theme.colors.primary + "33", theme.colors.secondary + "20"]} // 20%, 12% opacity
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.statsGradient}
+                  >
+                    <View style={styles.statsContent}>
+                      <View style={styles.statsInfo}>
+                        <Text style={[styles.statsNumber, { color: theme.colors.textPrimary }]}>
+                          {favorites.length}
+                        </Text>
+                        <Text style={[styles.statsLabel, { color: theme.colors.textSecondary }]}>
+                          {favorites.length === 1 ? 'Favorite Song' : 'Favorite Songs'}
+                        </Text>
+                      </View>
+                      <View style={[
+                        styles.statsIconContainer,
+                        { backgroundColor: theme.colors.errorColor + "33" } // 20% opacity
+                      ]}>
+                        <Ionicons name="heart" size={24} color={theme.colors.errorColor} />
+                      </View>
+                    </View>
+                  </LinearGradient>
+                </View>
+
+                <SongsList
+                  addToPlaylist={addToPlaylist}
+                  data={favorites}
+                  isFavorite={isFavorite}
+                  playSong={playFavoriteSong}
+                  toggleFavorite={toggleFavorite}
+                />
+              </View>
             )}
             {showModal && (
               <PlayListModal
@@ -131,7 +193,6 @@ export default Favorites;
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    backgroundColor: "#080B38",
   },
   gradient: {
     flex: 1,
@@ -150,24 +211,92 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: 40,
   },
   emptyIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(123, 77, 255, 0.15)",
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 24,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
-    color: "#F8F9FE",
     marginBottom: 8,
+    textAlign: "center",
   },
   emptySubtitle: {
     fontSize: 16,
-    color: "#A0A6B1",
+    textAlign: "center",
+    marginBottom: 32,
+    opacity: 0.8,
+  },
+  emptyTip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 16,
+    maxWidth: 280,
+  },
+  tipIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  tipText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+    opacity: 0.8,
+  },
+  songsContainer: {
+    flex: 1,
+  },
+  statsCard: {
+    borderRadius: 20,
+    marginBottom: 24,
+    overflow: "hidden",
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  statsGradient: {
+    padding: 20,
+  },
+  statsContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  statsInfo: {
+    flex: 1,
+  },
+  statsNumber: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  statsLabel: {
+    fontSize: 14,
+    opacity: 0.8,
+  },
+  statsIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

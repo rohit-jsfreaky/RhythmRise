@@ -1,11 +1,14 @@
 import { StyleSheet, Text, View, Animated } from "react-native";
 import React from "react";
+import { useTheme } from "../contexts/ThemeContext";
 
 const TopTitle = ({ title }) => {
+  const { theme } = useTheme();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-      <View style={styles.accent} />
+      <Text style={[styles.title, { color: theme.colors.textPrimary }]}>{title}</Text>
+      <View style={[styles.accent, { backgroundColor: theme.colors.primary }]} />
     </View>
   );
 };
@@ -20,7 +23,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#F8F9FE", // Switched to light color on dark background
     letterSpacing: 0.5,
   },
   accent: {
@@ -30,6 +32,5 @@ const styles = StyleSheet.create({
     width: 32,
     height: 3,
     borderRadius: 4,
-    backgroundColor: '#7B4DFF', // Accent color
   }
 });

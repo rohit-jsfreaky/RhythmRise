@@ -2,8 +2,11 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React from "react";
 import * as SecureStore from "expo-secure-store";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../contexts/ThemeContext";
 
 const SearchQuery = ({ searchHistory, setSearchHistory, handleQueryTap }) => {
+  const { theme } = useTheme();
+
   const handleRemoveQuery = async (query) => {
     const updated = searchHistory.filter((q) => q !== query);
     setSearchHistory(updated);
@@ -18,15 +21,25 @@ const SearchQuery = ({ searchHistory, setSearchHistory, handleQueryTap }) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.headerText}>Recent Searches</Text>
-        <TouchableOpacity onPress={handleClearAll} style={styles.clearAllBtn}>
-          <Ionicons name="trash-outline" size={18} color="#A0A6B1" />
-          <Text style={styles.clearAllText}>Clear All</Text>
+        <Text style={[styles.headerText, { color: theme.colors.textPrimary }]}>
+          Recent Searches
+        </Text>
+        <TouchableOpacity
+          onPress={handleClearAll}
+          style={[styles.clearAllBtn, { backgroundColor: theme.colors.glassBackground }]}
+        >
+          <Ionicons name="trash-outline" size={18} color={theme.colors.textSecondary} />
+          <Text style={[styles.clearAllText, { color: theme.colors.textSecondary }]}>
+            Clear All
+          </Text>
         </TouchableOpacity>
       </View>
       <View style={styles.list}>
         {searchHistory.map((query) => (
-          <View key={query} style={styles.queryRow}>
+          <View
+            key={query}
+            style={[styles.queryRow, { backgroundColor: theme.colors.glassBackground }]}
+          >
             <TouchableOpacity
               style={styles.queryBtn}
               onPress={() => handleQueryTap(query)}
@@ -35,16 +48,22 @@ const SearchQuery = ({ searchHistory, setSearchHistory, handleQueryTap }) => {
               <Ionicons
                 name="time-outline"
                 size={18}
-                color="#18B5FF"
+                color={theme.colors.secondary}
                 style={{ marginRight: 10 }}
               />
-              <Text style={styles.queryText}>{query}</Text>
+              <Text style={[styles.queryText, { color: theme.colors.textPrimary }]}>
+                {query}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => handleRemoveQuery(query)}
               style={styles.removeBtn}
             >
-              <Ionicons name="close-circle-outline" size={22} color="#A0A6B1" />
+              <Ionicons
+                name="close-circle-outline"
+                size={22}
+                color={theme.colors.textSecondary}
+              />
             </TouchableOpacity>
           </View>
         ))}
@@ -68,20 +87,18 @@ const styles = StyleSheet.create({
   headerText: {
     fontWeight: "bold",
     fontSize: 18,
-    color: "#F8F9FE",
   },
   clearAllBtn: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
   clearAllText: {
-    color: "#A0A6B1",
     fontSize: 13,
     marginLeft: 6,
+    fontWeight: "500",
   },
   list: {
     marginTop: 4,
@@ -89,7 +106,6 @@ const styles = StyleSheet.create({
   queryRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -101,7 +117,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   queryText: {
-    color: "#F8F9FE",
     fontSize: 15,
     fontWeight: "500",
   },

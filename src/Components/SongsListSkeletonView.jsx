@@ -1,8 +1,10 @@
 import { StyleSheet, View, Animated, Easing } from "react-native";
 import React, { useRef, useEffect } from "react";
+import { useTheme } from "../contexts/ThemeContext";
 
 const SongsListSkeletonView = () => {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const { theme } = useTheme();
 
   useEffect(() => {
     Animated.loop(
@@ -23,11 +25,29 @@ const SongsListSkeletonView = () => {
   };
 
   return (
-    <View style={styles.songItem}>
-      <Animated.View style={[styles.skeletonThumbnail, shimmerStyle]} />
+    <View style={[styles.songItem, { backgroundColor: theme.colors.glassBackground }]}>
+      <Animated.View 
+        style={[
+          styles.skeletonThumbnail, 
+          { backgroundColor: theme.colors.border }, 
+          shimmerStyle
+        ]} 
+      />
       <View style={styles.songInfo}>
-        <Animated.View style={[styles.skeletonTitle, shimmerStyle]} />
-        <Animated.View style={[styles.skeletonDetails, shimmerStyle]} />
+        <Animated.View 
+          style={[
+            styles.skeletonTitle, 
+            { backgroundColor: theme.colors.border }, 
+            shimmerStyle
+          ]} 
+        />
+        <Animated.View 
+          style={[
+            styles.skeletonDetails, 
+            { backgroundColor: theme.colors.border }, 
+            shimmerStyle
+          ]} 
+        />
       </View>
     </View>
   );
@@ -41,7 +61,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 10,
     marginBottom: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
     borderRadius: 12,
     alignItems: "center",
   },
@@ -49,7 +68,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
   songInfo: {
     marginLeft: 16,
@@ -59,13 +77,11 @@ const styles = StyleSheet.create({
     width: "70%",
     height: 16,
     borderRadius: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
     marginBottom: 8,
   },
   skeletonDetails: {
     width: "50%",
     height: 12,
     borderRadius: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
 });

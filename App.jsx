@@ -12,12 +12,14 @@ import MiniPlayer from "./src/Components/MiniPlayer";
 import Tabs from "./src/Screens/Tabs/Tabs";
 import Favorites from "./src/Screens/Favorites/Favorites";
 import Playlist from "./src/Screens/Playlist/Playlist";
+import { ThemeProvider, useTheme } from "./src/contexts/ThemeContext";
 
 const Stack = createNativeStackNavigator();
 
-export default function App() {
+function AppContent() {
   const [playSetup, setPlaySetup] = useState(false);
   const [isTrackActive, setIsTrackActive] = useState(false);
+  const { theme, isLoading } = useTheme();
 
   useEffect(() => {
     const playerSet = async () => {
@@ -36,10 +38,10 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  if (!playSetup) {
+  if (isLoading || !playSetup) {
     return (
-      <View style={styles.container}>
-        <Text>Setting up player...</Text>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <Text style={{ color: theme.colors.textPrimary }}>Setting up player...</Text>
       </View>
     );
   }
@@ -47,7 +49,7 @@ export default function App() {
   return (
     <MenuProvider>
       <NavigationContainer>
-        <StatusBar style="light" backgroundColor="#080B38"/>
+        <StatusBar style="light" backgroundColor={theme.colors.background} />
         <Stack.Navigator initialRouteName="Tabs">
           <Stack.Screen
             name="Tabs"
@@ -59,7 +61,6 @@ export default function App() {
             component={Favorites}
             options={{ headerShown: false }}
           />
-
           <Stack.Screen
             name="Playlist"
             component={Playlist}
@@ -78,10 +79,17 @@ export default function App() {
   );
 }
 
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
   },

@@ -27,6 +27,7 @@ import NoTrackPlayer from "../../Components/NoTrackPlayer";
 import PlayListModal from "../../Components/PlayListModal";
 import PlayerMenu from "../../Components/PlayerMenu";
 import { useNavigation } from "@react-navigation/native";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const { width } = Dimensions.get("window");
 const ARTWORK_SIZE = width * 0.75;
@@ -45,6 +46,7 @@ const PlayerScreen = () => {
   const [selectedSong, setSelectedSong] = useState(null);
   const { state } = playbackState;
   const navigation = useNavigation();
+  const { theme } = useTheme();
 
   // Check if current track is in any playlists
   const checkTrackInPlaylists = async () => {
@@ -179,8 +181,8 @@ const PlayerScreen = () => {
 
   return (
     <LinearGradient
-      colors={["rgba(123, 77, 255, 0.15)", "#080B38"]}
-      style={styles.container}
+      colors={theme.colors.gradient}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       <StatusBar style="light" />
       <SafeAreaView style={styles.safeArea}>
@@ -189,15 +191,17 @@ const PlayerScreen = () => {
             onPress={() => navigation.navigate("Home")}
             style={styles.headerButton}
           >
-            <Ionicons name="arrow-back" size={28} color="#F8F9FE" />
+            <Ionicons name="arrow-back" size={28} color={theme.colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Now Playing</Text>
+          <Text style={[styles.headerTitle, { color: theme.colors.textPrimary }]}>
+            Now Playing
+          </Text>
           <View style={styles.menuWrapper}>
             <TouchableOpacity
               style={styles.headerButton}
               onPress={showMenu ? closeMenu : openMenu}
             >
-              <Ionicons name="ellipsis-vertical" size={24} color="#F8F9FE" />
+              <Ionicons name="ellipsis-vertical" size={24} color={theme.colors.textPrimary} />
             </TouchableOpacity>
 
             {/* Player Menu Component */}
@@ -212,16 +216,19 @@ const PlayerScreen = () => {
         </View>
 
         <View style={styles.artworkContainer}>
-          <View style={styles.artworkShadow}>
-            <Image source={{ uri: track.artwork }} style={styles.artwork} />
+          <View style={[styles.artworkShadow, { shadowColor: theme.colors.shadowColor }]}>
+            <Image 
+              source={{ uri: track.artwork }} 
+              style={[styles.artwork, { backgroundColor: theme.colors.accent }]} 
+            />
           </View>
         </View>
 
         <View style={styles.infoContainer}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={[styles.title, { color: theme.colors.textPrimary }]} numberOfLines={1}>
             {track.title}
           </Text>
-          <Text style={styles.artist} numberOfLines={1}>
+          <Text style={[styles.artist, { color: theme.colors.textSecondary }]} numberOfLines={1}>
             {track.artist}
           </Text>
         </View>
@@ -233,14 +240,18 @@ const PlayerScreen = () => {
             maximumValue={duration > 0 ? duration : 0.001}
             value={position}
             onSlidingComplete={async (value) => await TrackPlayer.seekTo(value)}
-            minimumTrackTintColor="#7B4DFF"
-            maximumTrackTintColor="rgba(248, 249, 254, 0.2)"
-            thumbTintColor="#18B5FF"
+            minimumTrackTintColor={theme.colors.primary}
+            maximumTrackTintColor={theme.colors.textPrimary + "33"} // 20% opacity
+            thumbTintColor={theme.colors.secondary}
           />
 
           <View style={styles.timeContainer}>
-            <Text style={styles.timeText}>{formatTime(position)}</Text>
-            <Text style={styles.timeText}>{formatTime(duration)}</Text>
+            <Text style={[styles.timeText, { color: theme.colors.textSecondary }]}>
+              {formatTime(position)}
+            </Text>
+            <Text style={[styles.timeText, { color: theme.colors.textSecondary }]}>
+              {formatTime(duration)}
+            </Text>
           </View>
         </View>
 
@@ -253,48 +264,53 @@ const PlayerScreen = () => {
             <MaterialIcons
               name="shuffle"
               size={28}
-              color={isShuffling ? "#18B5FF" : "rgba(248, 249, 254, 0.5)"}
+              color={isShuffling ? theme.colors.secondary : theme.colors.textPrimary + "80"} // 50% opacity
             />
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.secondaryButton}
+            style={[styles.secondaryButton, { backgroundColor: theme.colors.glassBackground }]}
             onPress={skipToPrevious}
             activeOpacity={0.7}
           >
-            <Ionicons name="play-skip-back" size={28} color="#F8F9FE" />
+            <Ionicons name="play-skip-back" size={28} color={theme.colors.textPrimary} />
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.playButton}
+            style={[
+              styles.playButton,
+              {
+                shadowColor: theme.colors.shadowColor,
+              }
+            ]}
             onPress={togglePlayback}
             disabled={isPreparing}
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={["#18B5FF", "#7B4DFF"]}
+              colors={theme.colors.activeGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.playButtonGradient}
             >
               {isPreparing ? (
-                <ActivityIndicator color="#fff" size={32} />
+                <ActivityIndicator color={theme.colors.textPrimary} size={32} />
               ) : (
                 <Ionicons
                   name={isPlaying ? "pause" : "play"}
                   size={36}
-                  color="#F8F9FE"
+                  color={theme.colors.textPrimary}
                 />
               )}
             </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.secondaryButton}
+            style={[styles.secondaryButton, { backgroundColor: theme.colors.glassBackground }]}
             onPress={skipToNext}
             activeOpacity={0.7}
           >
-            <Ionicons name="play-skip-forward" size={28} color="#F8F9FE" />
+            <Ionicons name="play-skip-forward" size={28} color={theme.colors.textPrimary} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -312,7 +328,7 @@ const PlayerScreen = () => {
               }
               size={28}
               color={
-                repeatMode !== "off" ? "#18B5FF" : "rgba(248, 249, 254, 0.5)"
+                repeatMode !== "off" ? theme.colors.secondary : theme.colors.textPrimary + "80"
               }
             />
           </TouchableOpacity>
@@ -323,12 +339,16 @@ const PlayerScreen = () => {
             <Ionicons
               name="heart-outline"
               size={22}
-              color="rgba(248, 249, 254, 0.7)"
+              color={theme.colors.textPrimary + "B3"} // 70% opacity
             />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.additionalButton}>
-            <Ionicons name="list" size={22} color="rgba(248, 249, 254, 0.7)" />
+            <Ionicons 
+              name="list" 
+              size={22} 
+              color={theme.colors.textPrimary + "B3"} // 70% opacity
+            />
           </TouchableOpacity>
         </View>
 
@@ -340,32 +360,51 @@ const PlayerScreen = () => {
             onRequestClose={() => setShowRemoveModal(false)}
           >
             <Pressable
-              style={styles.modalOverlay}
+              style={[
+                styles.modalOverlay,
+                { backgroundColor: theme.colors.background + "D9" } // 85% opacity
+              ]}
               onPress={() => setShowRemoveModal(false)}
             >
-              <View style={styles.confirmModal}>
-                <View style={styles.confirmIconContainer}>
-                  <Ionicons name="warning" size={32} color="#e74c3c" />
+              <View style={[styles.confirmModal, { backgroundColor: theme.colors.surface }]}>
+                <View style={[
+                  styles.confirmIconContainer,
+                  { backgroundColor: theme.colors.errorColor + "1A" } // 10% opacity
+                ]}>
+                  <Ionicons name="warning" size={32} color={theme.colors.errorColor} />
                 </View>
-                <Text style={styles.confirmTitle}>Remove from Playlist?</Text>
-                <Text style={styles.confirmMessage}>
-                  This will remove "{track.title}" from all playlists containing
-                  it.
+                <Text style={[styles.confirmTitle, { color: theme.colors.textPrimary }]}>
+                  Remove from Playlist?
+                </Text>
+                <Text style={[styles.confirmMessage, { color: theme.colors.textSecondary }]}>
+                  This will remove "{track.title}" from all playlists containing it.
                 </Text>
 
                 <View style={styles.confirmButtons}>
                   <TouchableOpacity
-                    style={[styles.confirmButton, styles.cancelButton]}
+                    style={[
+                      styles.confirmButton,
+                      styles.cancelButton,
+                      { backgroundColor: theme.colors.textSecondary + "1A" } // 10% opacity
+                    ]}
                     onPress={() => setShowRemoveModal(false)}
                   >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                    <Text style={[styles.cancelButtonText, { color: theme.colors.textSecondary }]}>
+                      Cancel
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={[styles.confirmButton, styles.removeButton]}
+                    style={[
+                      styles.confirmButton,
+                      styles.removeButton,
+                      { backgroundColor: theme.colors.errorColor }
+                    ]}
                     onPress={confirmRemoveFromPlaylist}
                   >
-                    <Text style={styles.removeButtonText}>Remove</Text>
+                    <Text style={[styles.removeButtonText, { color: theme.colors.textPrimary }]}>
+                      Remove
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -390,7 +429,6 @@ const PlayerScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#080B38",
   },
   safeArea: {
     flex: 1,
@@ -412,7 +450,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#F8F9FE",
     letterSpacing: 0.3,
   },
   menuWrapper: {
@@ -425,7 +462,6 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   artworkShadow: {
-    shadowColor: "#7B4DFF",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.25,
     shadowRadius: 20,
@@ -436,7 +472,6 @@ const styles = StyleSheet.create({
     width: ARTWORK_SIZE,
     height: ARTWORK_SIZE,
     borderRadius: 24,
-    backgroundColor: "#36195B",
   },
   infoContainer: {
     alignItems: "center",
@@ -446,13 +481,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#F8F9FE",
     textAlign: "center",
     marginBottom: 8,
   },
   artist: {
     fontSize: 16,
-    color: "#A0A6B1",
     textAlign: "center",
   },
   progressContainer: {
@@ -471,7 +504,6 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 12,
-    color: "#A0A6B1",
   },
   controlsContainer: {
     flexDirection: "row",
@@ -490,7 +522,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -500,7 +531,6 @@ const styles = StyleSheet.create({
     borderRadius: 36,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#7B4DFF",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
@@ -528,12 +558,10 @@ const styles = StyleSheet.create({
   // Confirmation Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(8, 11, 56, 0.85)",
     justifyContent: "center",
     alignItems: "center",
   },
   confirmModal: {
-    backgroundColor: "#10133E",
     borderRadius: 20,
     width: "85%",
     maxWidth: 340,
@@ -549,7 +577,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "rgba(231, 76, 60, 0.1)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
@@ -557,13 +584,11 @@ const styles = StyleSheet.create({
   confirmTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#F8F9FE",
     marginBottom: 8,
     textAlign: "center",
   },
   confirmMessage: {
     fontSize: 14,
-    color: "#A0A6B1",
     textAlign: "center",
     marginBottom: 24,
     lineHeight: 20,
@@ -580,20 +605,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cancelButton: {
-    backgroundColor: "rgba(160, 166, 177, 0.1)",
     marginRight: 8,
   },
   removeButton: {
-    backgroundColor: "#e74c3c",
     marginLeft: 8,
   },
   cancelButtonText: {
-    color: "#A0A6B1",
     fontWeight: "600",
     fontSize: 15,
   },
   removeButtonText: {
-    color: "#F8F9FE",
     fontWeight: "600",
     fontSize: 15,
   },

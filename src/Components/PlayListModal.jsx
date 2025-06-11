@@ -12,6 +12,7 @@ import React, { useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from "../contexts/ThemeContext";
 
 const PlayListModal = ({
   showModal,
@@ -20,6 +21,8 @@ const PlayListModal = ({
   selectedSong,
 }) => {
   const [playlists, setPlaylists] = useState([]);
+  const { theme } = useTheme();
+
   const handleAddToPlaylist = async (playlistTitle) => {
     const stored = await SecureStore.getItemAsync("playlists");
     let playlistsArr = stored ? JSON.parse(stored) : [];
@@ -58,32 +61,41 @@ const PlayListModal = ({
       onRequestClose={() => setShowModal(false)}
     >
       <Pressable
-        style={styles.modalOverlay}
+        style={[
+          styles.modalOverlay,
+          { backgroundColor: theme.colors.background + "D9" } // 85% opacity
+        ]}
         onPress={() => setShowModal(false)}
       >
-        <View style={styles.modalCard}>
+        <View style={[styles.modalCard, { backgroundColor: theme.colors.surface }]}>
           <View style={styles.modalHeader}>
             {selectedSong?.thumbnail && (
               <Image 
                 source={{uri: selectedSong.thumbnail}} 
-                style={styles.songThumbnail}
+                style={[styles.songThumbnail, { backgroundColor: theme.colors.secondary + "30" }]}
               />
             )}
             <View style={styles.modalHeaderText}>
-              <Text style={styles.modalTitle}>Add to Playlist</Text>
-              <Text style={styles.songTitle} numberOfLines={1}>
+              <Text style={[styles.modalTitle, { color: theme.colors.textPrimary }]}>
+                Add to Playlist
+              </Text>
+              <Text style={[styles.songTitle, { color: theme.colors.textSecondary }]} numberOfLines={1}>
                 {selectedSong?.title}
               </Text>
             </View>
           </View>
           
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
           
           {playlists.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="musical-notes" size={36} color="#A0A6B1" />
-              <Text style={styles.modalEmpty}>No playlists found.</Text>
-              <Text style={styles.emptySubtext}>Create a playlist in the Library tab</Text>
+              <Ionicons name="musical-notes" size={36} color={theme.colors.textSecondary} />
+              <Text style={[styles.modalEmpty, { color: theme.colors.textSecondary }]}>
+                No playlists found.
+              </Text>
+              <Text style={[styles.emptySubtext, { color: theme.colors.textSecondary }]}>
+                Create a playlist in the Library tab
+              </Text>
             </View>
           ) : (
             <View style={styles.playlistsContainer}>
@@ -95,15 +107,17 @@ const PlayListModal = ({
                   activeOpacity={0.8}
                 >
                   <LinearGradient
-                    colors={['#36195B', '#522377']}
+                    colors={[theme.colors.accent, theme.colors.primary + "80"]} // 50% opacity
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.playlistIconBg}
                   >
-                    <Ionicons name="musical-notes" size={20} color="#F8F9FE" />
+                    <Ionicons name="musical-notes" size={20} color={theme.colors.textPrimary} />
                   </LinearGradient>
-                  <Text style={styles.modalPlaylistText}>{pl.title}</Text>
-                  <Ionicons name="chevron-forward" size={20} color="#A0A6B1" />
+                  <Text style={[styles.modalPlaylistText, { color: theme.colors.textPrimary }]}>
+                    {pl.title}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
                 </TouchableOpacity>
               ))}
             </View>
@@ -111,9 +125,11 @@ const PlayListModal = ({
           
           <TouchableOpacity
             onPress={() => setShowModal(false)}
-            style={styles.modalCancelBtn}
+            style={[styles.modalCancelBtn, { backgroundColor: theme.colors.accent }]}
           >
-            <Text style={styles.modalCancelText}>Cancel</Text>
+            <Text style={[styles.modalCancelText, { color: theme.colors.textPrimary }]}>
+              Cancel
+            </Text>
           </TouchableOpacity>
         </View>
       </Pressable>
@@ -126,12 +142,10 @@ export default PlayListModal;
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(8, 11, 56, 0.85)",
     justifyContent: "center",
     alignItems: "center",
   },
   modalCard: {
-    backgroundColor: "#10133E",
     borderRadius: 20,
     width: '85%',
     maxWidth: 340,
@@ -163,16 +177,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontWeight: "bold",
     fontSize: 18,
-    color: "#F8F9FE",
     marginBottom: 4,
   },
   songTitle: {
     fontSize: 14,
-    color: "#A0A6B1",
   },
   divider: {
     height: 1,
-    backgroundColor: "rgba(160, 166, 177, 0.2)",
     width: '100%',
     marginBottom: 16,
   },
@@ -181,13 +192,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalEmpty: {
-    color: "#A0A6B1",
     fontSize: 15,
     marginTop: 12,
     marginBottom: 4,
   },
   emptySubtext: {
-    color: "#A0A6B1",
     fontSize: 13,
     opacity: 0.7,
   },
@@ -215,7 +224,6 @@ const styles = StyleSheet.create({
   },
   modalPlaylistText: {
     flex: 1,
-    color: "#F8F9FE",
     fontWeight: "500",
     fontSize: 15,
   },
@@ -223,12 +231,10 @@ const styles = StyleSheet.create({
     marginTop: 16,
     padding: 14,
     borderRadius: 12,
-    backgroundColor: "#36195B",
     width: "85%",
     alignItems: "center",
   },
   modalCancelText: {
-    color: "#F8F9FE",
     fontWeight: "600",
     fontSize: 15,
   },
