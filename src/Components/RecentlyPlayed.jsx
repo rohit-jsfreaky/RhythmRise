@@ -10,6 +10,7 @@ import * as SecureStore from "expo-secure-store";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useEffect, useRef } from "react";
 import { Animated } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import PlayListModal from "./PlayListModal";
 
 const RecentlyPlayed = ({ playRecentSong, columns }) => {
@@ -61,10 +62,14 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
   };
 
   return (
-    <View style={{ paddingBottom: 24 }}>
-      <Text style={{ fontWeight: "bold", fontSize: 18, marginBottom: 10 }}>
-        Recently Played
-      </Text>
+    <View style={styles.container}>
+      <View style={styles.headerRow}>
+        <Text style={styles.heading}>Recently Played</Text>
+        <TouchableOpacity style={styles.seeAll}>
+          <Text style={styles.seeAllText}>See All</Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={{ flexDirection: "row" }}>
         <FlatList
           data={columns}
@@ -74,10 +79,7 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
           renderItem={({ item: col }) => (
             <View style={{ marginRight: 16 }}>
               {col.map((song) => (
-                <View
-                  style={{ flexDirection: "row", alignItems: "center" }}
-                  key={song.url}
-                >
+                <View style={{ position: "relative" }} key={song.url}>
                   <TouchableOpacity
                     onPress={() => playRecentSong(song)}
                     style={styles.recentSongItem}
@@ -96,14 +98,16 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
                       </Text>
                       <Text style={styles.recentDuration}>{song.duration}</Text>
                     </View>
+                  </TouchableOpacity>
+                  <View style={styles.actionButtons}>
                     <TouchableOpacity
                       onPress={() => toggleFavorite(song)}
-                      style={{ marginLeft: 8 }}
+                      style={styles.actionButton}
                     >
                       <Ionicons
                         name={isFavorite(song) ? "heart" : "heart-outline"}
                         size={22}
-                        color={isFavorite(song) ? "#e74c3c" : "#aaa"}
+                        color={isFavorite(song) ? "#e74c3c" : "#F8F9FE"}
                       />
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -111,76 +115,123 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
                         menuAnim.setValue(0);
                         setMenuOpenFor(song.url);
                       }}
-                      style={{ marginLeft: 8, padding: 4 }}
+                      style={styles.actionButton}
                     >
                       <Ionicons
                         name="ellipsis-vertical"
                         size={22}
-                        color="#888"
+                        color="#F8F9FE"
                       />
                     </TouchableOpacity>
-                    {menuOpenFor === song.url && (
-                      <>
-                        {/* Overlay to close menu on outside click */}
+                  </View>
+
+                  {menuOpenFor === song.url && (
+                    <>
+                      {/* Overlay to close menu on outside click */}
+                      <TouchableOpacity
+                        activeOpacity={1}
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          zIndex: 98,
+                        }}
+                        onPress={() => setMenuOpenFor(null)}
+                      />
+                      <Animated.View
+                        style={{
+                          position: "absolute",
+                          top: 50,
+                          right: 10,
+                          backgroundColor: "#10133E",
+                          borderRadius: 12,
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 8 },
+                          shadowOpacity: 0.15,
+                          shadowRadius: 12,
+                          elevation: 8,
+                          zIndex: 100,
+                          minWidth: 160,
+                          overflow: 'hidden',
+                          opacity: menuAnim,
+                          transform: [
+                            {
+                              translateY: menuAnim.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [20, 0],
+                              }),
+                            },
+                          ],
+                        }}
+                      >
                         <TouchableOpacity
-                          activeOpacity={1}
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            zIndex: 98,
+                          onPress={() => {
+                            setMenuOpenFor(null);
+                            setSelectedSong(song);
+                            setShowModal(true);
                           }}
-                          onPress={() => setMenuOpenFor(null)}
-                        />
-                        <Animated.View
                           style={{
-                            position: "absolute",
-                            top: 0,
-                            right: 10,
-                            backgroundColor: "#fff",
-                            borderRadius: 10,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.1,
-                            shadowRadius: 6,
-                            elevation: 6,
-                            zIndex: 100,
-                            minWidth: 140,
-                            opacity: menuAnim,
-                            transform: [
-                              {
-                                translateY: menuAnim.interpolate({
-                                  inputRange: [0, 1],
-                                  outputRange: [20, 0],
-                                }),
-                              },
-                            ],
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            padding: 16,
+                            borderBottomWidth: 1,
+                            borderBottomColor: 'rgba(160, 166, 177, 0.1)',
                           }}
+                          activeOpacity={0.7}
                         >
-                          <TouchableOpacity
-                            onPress={() => {
-                              setMenuOpenFor(null);
-                              setSelectedSong(song);
-                              setShowModal(true);
-                            }}
-                            style={{ padding: 12 }}
-                          >
-                            <Text style={{ color: "#222" }}>
-                              Add to Playlist
-                            </Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={() => setMenuOpenFor(null)}
-                            style={{ padding: 12 }}
-                          >
-                            <Text style={{ color: "#888" }}>Cancel</Text>
-                          </TouchableOpacity>
-                        </Animated.View>
-                      </>
-                    )}
-                  </TouchableOpacity>
+                          <View style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 16,
+                            backgroundColor: 'rgba(123, 77, 255, 0.2)',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginRight: 12,
+                          }}>
+                            <Ionicons name="musical-notes" size={16} color="#7B4DFF" />
+                          </View>
+                          <Text style={{ 
+                            color: "#F8F9FE", 
+                            fontSize: 14, 
+                            fontWeight: '500' 
+                          }}>
+                            Add to Playlist
+                          </Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity
+                          onPress={() => setMenuOpenFor(null)}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            padding: 16,
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <View style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 16,
+                            backgroundColor: 'rgba(160, 166, 177, 0.1)',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginRight: 12,
+                          }}>
+                            <Ionicons name="close" size={16} color="#A0A6B1" />
+                          </View>
+                          <Text style={{ 
+                            color: "#A0A6B1", 
+                            fontSize: 14, 
+                            fontWeight: '500' 
+                          }}>
+                            Cancel
+                          </Text>
+                        </TouchableOpacity>
+                      </Animated.View>
+                    </>
+                  )}
                 </View>
               ))}
             </View>
@@ -202,44 +253,74 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
 export default RecentlyPlayed;
 
 const styles = StyleSheet.create({
+  container: {
+    marginBottom: 24,
+  },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  heading: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#F8F9FE",
+  },
+  seeAll: {
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+  },
+  seeAllText: {
+    color: "#7B4DFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
   recentSongItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "rgba(255,255,255,0.08)",
     borderRadius: 12,
-    padding: 10,
+    padding: 12,
     marginBottom: 16,
-    width: 240,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 2,
-    elevation: 1,
+    width: 250,
   },
   recentArtwork: {
     width: 56,
     height: 56,
-    borderRadius: 8,
+    borderRadius: 10,
     marginRight: 12,
-    backgroundColor: "#eee",
+    backgroundColor: "#18B5FF",
   },
   songInfo: {
     flex: 1,
     justifyContent: "center",
+    paddingRight: 50, // Make space for action buttons
   },
   recentTitle: {
     fontSize: 15,
-    fontWeight: "bold",
-    color: "#222",
+    fontWeight: "600",
+    color: "#F8F9FE",
     marginBottom: 2,
   },
   recentArtist: {
     fontSize: 13,
-    color: "#888",
-    marginBottom: 2,
+    color: "#A0A6B1",
+    marginBottom: 4,
   },
   recentDuration: {
     fontSize: 12,
-    color: "#aaa",
+    color: "#A0A6B1",
+    opacity: 0.7,
+  },
+  actionButtons: {
+    position: "absolute",
+    right: 12,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
+  },
+  actionButton: {
+    padding: 6,
   },
 });

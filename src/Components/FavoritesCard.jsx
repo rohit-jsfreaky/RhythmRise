@@ -1,46 +1,69 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 
 const FavoritesCard = () => {
   const navigation = useNavigation();
+
   return (
-    <Pressable
-      style={styles.card}
+    <TouchableOpacity
+      style={styles.container}
       onPress={() => navigation.navigate("Favorites")}
+      activeOpacity={0.8}
     >
-      <Ionicons
-        name="heart"
-        size={54}
-        color="#e74c3c"
-        style={{ marginBottom: 10 }}
-      />
-      <Text style={styles.heading}>Favourites</Text>
-    </Pressable>
+      <LinearGradient
+        colors={["#36195B", "#522377"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.card}
+      >
+        <View style={styles.iconContainer}>
+          <Ionicons name="heart" size={36} color="#e74c3c" />
+        </View>
+        <Text style={styles.heading}>Favorites</Text>
+        <Text style={styles.subheading}>All your loved tracks</Text>
+      </LinearGradient>
+    </TouchableOpacity>
   );
 };
 
 export default FavoritesCard;
 
 const styles = StyleSheet.create({
+  container: {
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#7B4DFF",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
+  },
   card: {
-    width: 120,
-    height: 120,
-    borderRadius: 18,
-    backgroundColor: "#fff",
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    alignItems: "flex-start",
+  },
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 4,
+    marginBottom: 16,
   },
   heading: {
-    fontSize: 17,
+    fontSize: 22,
     fontWeight: "bold",
-    letterSpacing: 1,
-    textAlign: "center",
+    color: "#F8F9FE",
+    marginBottom: 6,
+  },
+  subheading: {
+    fontSize: 14,
+    color: "#A0A6B1",
   },
 });

@@ -18,7 +18,7 @@ const SongsListSkeletonView = () => {
   const shimmerStyle = {
     opacity: shimmerAnim.interpolate({
       inputRange: [0, 0.5, 1],
-      outputRange: [0.5, 1, 0.5],
+      outputRange: [0.3, 0.6, 0.3],
     }),
   };
 
@@ -38,32 +38,34 @@ export default SongsListSkeletonView;
 const styles = StyleSheet.create({
   songItem: {
     flexDirection: "row",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    marginBottom: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderRadius: 12,
     alignItems: "center",
   },
   skeletonThumbnail: {
-    width: 50,
-    height: 50,
-    borderRadius: 4,
-    backgroundColor: "#e0e0e0",
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
   songInfo: {
-    marginLeft: 10,
+    marginLeft: 16,
     flex: 1,
   },
   skeletonTitle: {
     width: "70%",
     height: 16,
     borderRadius: 4,
-    backgroundColor: "#e0e0e0",
-    marginBottom: 6,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    marginBottom: 8,
   },
   skeletonDetails: {
     width: "50%",
     height: 12,
     borderRadius: 4,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
 });

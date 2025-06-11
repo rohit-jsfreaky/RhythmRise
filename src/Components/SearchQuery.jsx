@@ -20,7 +20,7 @@ const SearchQuery = ({ searchHistory, setSearchHistory, handleQueryTap }) => {
       <View style={styles.headerRow}>
         <Text style={styles.headerText}>Recent Searches</Text>
         <TouchableOpacity onPress={handleClearAll} style={styles.clearAllBtn}>
-          <Ionicons name="trash-outline" size={22} color="#888" />
+          <Ionicons name="trash-outline" size={18} color="#A0A6B1" />
           <Text style={styles.clearAllText}>Clear All</Text>
         </TouchableOpacity>
       </View>
@@ -35,8 +35,8 @@ const SearchQuery = ({ searchHistory, setSearchHistory, handleQueryTap }) => {
               <Ionicons
                 name="time-outline"
                 size={18}
-                color="#1DB954"
-                style={{ marginRight: 8 }}
+                color="#18B5FF"
+                style={{ marginRight: 10 }}
               />
               <Text style={styles.queryText}>{query}</Text>
             </TouchableOpacity>
@@ -44,7 +44,7 @@ const SearchQuery = ({ searchHistory, setSearchHistory, handleQueryTap }) => {
               onPress={() => handleRemoveQuery(query)}
               style={styles.removeBtn}
             >
-              <Ionicons name="close-circle-outline" size={22} color="#888" />
+              <Ionicons name="close-circle-outline" size={22} color="#A0A6B1" />
             </TouchableOpacity>
           </View>
         ))}
@@ -63,42 +63,37 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 16,
   },
   headerText: {
     fontWeight: "bold",
-    fontSize: 17,
-    color: "#222",
+    fontSize: 18,
+    color: "#F8F9FE",
   },
   clearAllBtn: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: "#f3f3f3",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
   clearAllText: {
-    color: "#888",
+    color: "#A0A6B1",
     fontSize: 13,
-    marginLeft: 4,
+    marginLeft: 6,
   },
   list: {
-    marginTop: 2,
+    marginTop: 4,
   },
   queryRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
     borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    marginBottom: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 2,
-    elevation: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 10,
   },
   queryBtn: {
     flexDirection: "row",
@@ -106,7 +101,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   queryText: {
-    color: "#222",
+    color: "#F8F9FE",
     fontSize: 15,
     fontWeight: "500",
   },
