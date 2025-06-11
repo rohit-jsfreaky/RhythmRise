@@ -7,8 +7,6 @@ import TrackPlayer, { State } from "react-native-track-player";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { MenuProvider } from "react-native-popup-menu";
-import QueueScreen from "./src/Screens/Queue/QueueScreen";
-import MiniPlayer from "./src/Components/MiniPlayer";
 import Tabs from "./src/Screens/Tabs/Tabs";
 import Favorites from "./src/Screens/Favorites/Favorites";
 import Playlist from "./src/Screens/Playlist/Playlist";
@@ -65,11 +63,6 @@ function AppContent() {
             name="Playlist"
             component={Playlist}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Queue"
-            component={QueueScreen}
-            options={{ title: "Queue" }}
           />
         </Stack.Navigator>
 
