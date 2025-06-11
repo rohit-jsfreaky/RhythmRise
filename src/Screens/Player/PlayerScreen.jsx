@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   Dimensions,
   StatusBar as RNStatusBar,
+  Modal,
+  Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import TrackPlayer, {
@@ -20,7 +22,11 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as Haptics from "expo-haptics";
+import * as SecureStore from "expo-secure-store";
 import NoTrackPlayer from "../../Components/NoTrackPlayer";
+import PlayListModal from "../../Components/PlayListModal";
+import PlayerMenu from "../../Components/PlayerMenu";
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 const ARTWORK_SIZE = width * 0.75;
@@ -30,9 +36,37 @@ const PlayerScreen = () => {
   const track = useActiveTrack();
   const playbackState = usePlaybackState();
   const [isShuffling, setIsShuffling] = useState(false);
-  const [repeatMode, setRepeatMode] = useState("off"); // "off" | "track" | "queue"
+  const [repeatMode, setRepeatMode] = useState("off");
   const [isPreparing, setIsPreparing] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [trackInPlaylists, setTrackInPlaylists] = useState([]);
+  const [selectedSong, setSelectedSong] = useState(null);
   const { state } = playbackState;
+  const navigation = useNavigation();
+
+  // Check if current track is in any playlists
+  const checkTrackInPlaylists = async () => {
+    if (!track) return;
+
+    try {
+      const stored = await SecureStore.getItemAsync("playlists");
+      if (stored) {
+        const playlists = JSON.parse(stored);
+        const playlistsWithTrack = playlists.filter((playlist) =>
+          playlist.songs.some((song) => song.url === track.id)
+        );
+        setTrackInPlaylists(playlistsWithTrack);
+      }
+    } catch (error) {
+      console.log("Error checking playlists:", error);
+    }
+  };
+
+  useEffect(() => {
+    checkTrackInPlaylists();
+  }, [track]);
 
   // Detect loading state
   useEffect(() => {
@@ -91,6 +125,54 @@ const PlayerScreen = () => {
     );
   };
 
+  const openMenu = () => {
+    setShowMenu(true);
+  };
+
+  const closeMenu = () => {
+    setShowMenu(false);
+  };
+
+  const handleAddToPlaylist = () => {
+    closeMenu();
+    setSelectedSong({
+      title: track.title,
+      artist: track.artist,
+      thumbnail: track.artwork,
+      url: track.id,
+      duration: formatTime(duration),
+      uploader: track.artist,
+    });
+    setShowPlaylistModal(true);
+  };
+
+  const handleRemoveFromPlaylist = () => {
+    closeMenu();
+    setShowRemoveModal(true);
+  };
+
+  const confirmRemoveFromPlaylist = async () => {
+    try {
+      const stored = await SecureStore.getItemAsync("playlists");
+      let playlistsArr = stored ? JSON.parse(stored) : [];
+
+      // Remove track from all playlists
+      playlistsArr = playlistsArr.map((playlist) => ({
+        ...playlist,
+        songs: playlist.songs.filter((song) => song.url !== track.id),
+      }));
+
+      await SecureStore.setItemAsync("playlists", JSON.stringify(playlistsArr));
+      setShowRemoveModal(false);
+      checkTrackInPlaylists(); // Refresh the playlist status
+
+      // Show success message (you can use ToastAndroid on Android)
+      console.log("Removed from all playlists");
+    } catch (error) {
+      console.log("Error removing from playlists:", error);
+    }
+  };
+
   if (!track) {
     return <NoTrackPlayer />;
   }
@@ -103,13 +185,30 @@ const PlayerScreen = () => {
       <StatusBar style="light" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.headerButton}>
-            <Ionicons name="chevron-down" size={28} color="#F8F9FE" />
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Home")}
+            style={styles.headerButton}
+          >
+            <Ionicons name="arrow-back" size={28} color="#F8F9FE" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Now Playing</Text>
-          <TouchableOpacity style={styles.headerButton}>
-            <Ionicons name="ellipsis-vertical" size={24} color="#F8F9FE" />
-          </TouchableOpacity>
+          <View style={styles.menuWrapper}>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={showMenu ? closeMenu : openMenu}
+            >
+              <Ionicons name="ellipsis-vertical" size={24} color="#F8F9FE" />
+            </TouchableOpacity>
+
+            {/* Player Menu Component */}
+            <PlayerMenu
+              showMenu={showMenu}
+              closeMenu={closeMenu}
+              trackInPlaylists={trackInPlaylists}
+              handleAddToPlaylist={handleAddToPlaylist}
+              handleRemoveFromPlaylist={handleRemoveFromPlaylist}
+            />
+          </View>
         </View>
 
         <View style={styles.artworkContainer}>
@@ -232,6 +331,57 @@ const PlayerScreen = () => {
             <Ionicons name="list" size={22} color="rgba(248, 249, 254, 0.7)" />
           </TouchableOpacity>
         </View>
+
+        {/* Remove Confirmation Modal */}
+        {showRemoveModal && (
+          <Modal
+            transparent
+            visible={showRemoveModal}
+            onRequestClose={() => setShowRemoveModal(false)}
+          >
+            <Pressable
+              style={styles.modalOverlay}
+              onPress={() => setShowRemoveModal(false)}
+            >
+              <View style={styles.confirmModal}>
+                <View style={styles.confirmIconContainer}>
+                  <Ionicons name="warning" size={32} color="#e74c3c" />
+                </View>
+                <Text style={styles.confirmTitle}>Remove from Playlist?</Text>
+                <Text style={styles.confirmMessage}>
+                  This will remove "{track.title}" from all playlists containing
+                  it.
+                </Text>
+
+                <View style={styles.confirmButtons}>
+                  <TouchableOpacity
+                    style={[styles.confirmButton, styles.cancelButton]}
+                    onPress={() => setShowRemoveModal(false)}
+                  >
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.confirmButton, styles.removeButton]}
+                    onPress={confirmRemoveFromPlaylist}
+                  >
+                    <Text style={styles.removeButtonText}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Pressable>
+          </Modal>
+        )}
+
+        {/* Playlist Modal */}
+        {showPlaylistModal && (
+          <PlayListModal
+            selectedSong={selectedSong}
+            setSelectedSong={setSelectedSong}
+            setShowModal={setShowPlaylistModal}
+            showModal={showPlaylistModal}
+          />
+        )}
       </SafeAreaView>
     </LinearGradient>
   );
@@ -264,6 +414,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#F8F9FE",
     letterSpacing: 0.3,
+  },
+  menuWrapper: {
+    position: "relative",
+    zIndex: 1000,
   },
   artworkContainer: {
     alignItems: "center",
@@ -370,6 +524,78 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginHorizontal: 15,
+  },
+  // Confirmation Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(8, 11, 56, 0.85)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  confirmModal: {
+    backgroundColor: "#10133E",
+    borderRadius: 20,
+    width: "85%",
+    maxWidth: 340,
+    padding: 24,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 10,
+  },
+  confirmIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "rgba(231, 76, 60, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  confirmTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#F8F9FE",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  confirmMessage: {
+    fontSize: 14,
+    color: "#A0A6B1",
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  confirmButtons: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-between",
+  },
+  confirmButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  cancelButton: {
+    backgroundColor: "rgba(160, 166, 177, 0.1)",
+    marginRight: 8,
+  },
+  removeButton: {
+    backgroundColor: "#e74c3c",
+    marginLeft: 8,
+  },
+  cancelButtonText: {
+    color: "#A0A6B1",
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  removeButtonText: {
+    color: "#F8F9FE",
+    fontWeight: "600",
+    fontSize: 15,
   },
 });
 

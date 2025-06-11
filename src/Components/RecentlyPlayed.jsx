@@ -56,11 +56,6 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
     await SecureStore.setItemAsync("favorites", JSON.stringify(updated));
   };
 
-  const addToPlaylist = (song) => {
-    setSelectedSong(song);
-    setShowModal(true);
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>

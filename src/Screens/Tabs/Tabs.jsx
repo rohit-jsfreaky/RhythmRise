@@ -95,8 +95,6 @@ function MyTabBar({ state, descriptors, navigation }) {
                       />
                     </View>
 
-                    {isFocused && <View style={styles.activeDot} />}
-
                     <Text
                       style={[
                         styles.tabLabel,

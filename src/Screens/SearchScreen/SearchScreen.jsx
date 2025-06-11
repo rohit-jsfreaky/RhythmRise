@@ -116,11 +116,7 @@ const SearchScreen = () => {
   };
 
   return (
-    <View
-      style={styles.scrollView}
-      contentContainerStyle={{ flexGrow: 1 }}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={styles.scrollView}>
       <LinearGradient
         colors={["rgba(123, 77, 255, 0.15)", "rgba(8, 11, 56, 1)"]}
         start={{ x: 0, y: 0 }}

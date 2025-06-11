@@ -4,11 +4,13 @@ import React from "react";
 import { SafeAreaView, TouchableOpacity } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 const ARTWORK_SIZE = width * 0.75;
 
 const NoTrackPlayer = () => {
+  const navgation = useNavigation();
   return (
     <LinearGradient
       colors={["rgba(123, 77, 255, 0.15)", "#080B38"]}
@@ -17,8 +19,11 @@ const NoTrackPlayer = () => {
       <StatusBar style="light" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.headerButton}>
-            <Ionicons name="chevron-down" size={28} color="#F8F9FE" />
+          <TouchableOpacity
+            onPress={() => navgation.navigate("Home")}
+            style={styles.headerButton}
+          >
+            <Ionicons name="arrow-back" size={28} color="#F8F9FE" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Now Playing</Text>
           <TouchableOpacity style={styles.headerButton}>
