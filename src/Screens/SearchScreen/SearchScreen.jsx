@@ -117,7 +117,9 @@ const SearchScreen = () => {
   };
 
   return (
-    <View style={[styles.scrollView, { backgroundColor: theme.colors.background }]}>
+    <ScrollView
+      style={[styles.scrollView, { backgroundColor: theme.colors.background }]}
+    >
       <LinearGradient
         colors={theme.colors.gradient}
         start={{ x: 0, y: 0 }}
@@ -146,7 +148,12 @@ const SearchScreen = () => {
             ) : searchResults.length === 0 ? (
               searchHistory.length === 0 ? (
                 <View style={styles.emptyStateContainer}>
-                  <Text style={[styles.noResults, { color: theme.colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.noResults,
+                      { color: theme.colors.textSecondary },
+                    ]}
+                  >
                     Search for music to get started
                   </Text>
                 </View>
@@ -169,7 +176,7 @@ const SearchScreen = () => {
           </View>
         </SafeAreaView>
       </LinearGradient>
-    </View>
+    </ScrollView>
   );
 };
 

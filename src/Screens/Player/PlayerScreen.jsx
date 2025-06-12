@@ -32,6 +32,7 @@ import PlayerMenu from "../../Components/PlayerMenu";
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../../contexts/ThemeContext";
 
+
 const { width } = Dimensions.get("window");
 const ARTWORK_SIZE = width * 0.75;
 

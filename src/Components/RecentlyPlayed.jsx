@@ -5,6 +5,8 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Dimensions,
+  Modal,
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,11 +16,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import PlayListModal from "./PlayListModal";
 import { useTheme } from "../contexts/ThemeContext";
 
+const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
+
 const RecentlyPlayed = ({ playRecentSong, columns }) => {
   const [favorites, setFavorites] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState(null);
   const [menuOpenFor, setMenuOpenFor] = useState(null);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const menuAnim = useRef(new Animated.Value(0)).current;
   const { theme } = useTheme();
 
@@ -33,13 +38,13 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
     if (menuOpenFor) {
       Animated.timing(menuAnim, {
         toValue: 1,
-        duration: 180,
+        duration: 200,
         useNativeDriver: true,
       }).start();
     } else {
       Animated.timing(menuAnim, {
         toValue: 0,
-        duration: 120,
+        duration: 150,
         useNativeDriver: true,
       }).start();
     }
@@ -58,6 +63,115 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
     await SecureStore.setItemAsync("favorites", JSON.stringify(updated));
   };
 
+  const handleMenuPress = (song, event) => {
+    const { pageX, pageY } = event.nativeEvent;
+    const menuWidth = 180;
+    const menuHeight = 120;
+    
+    // Calculate position to keep menu on screen
+    let x = pageX - menuWidth + 20; // Position to the left of touch point
+    let y = pageY - 20; // Position slightly above touch point
+    
+    // Adjust if menu would go off screen
+    if (x < 20) x = 20;
+    if (x + menuWidth > screenWidth - 20) x = screenWidth - menuWidth - 20;
+    if (y < 60) y = 60; // Keep below status bar
+    if (y + menuHeight > screenHeight - 100) y = screenHeight - menuHeight - 100;
+    
+    setMenuPosition({ x, y });
+    menuAnim.setValue(0);
+    setMenuOpenFor(song.url);
+  };
+
+  const MenuPortal = () => {
+    if (!menuOpenFor) return null;
+
+    return (
+      <Modal
+        transparent
+        visible={!!menuOpenFor}
+        animationType="none"
+        onRequestClose={() => setMenuOpenFor(null)}
+      >
+        <TouchableOpacity
+          style={styles.portalOverlay}
+          activeOpacity={1}
+          onPress={() => setMenuOpenFor(null)}
+        >
+          <Animated.View
+            style={[
+              styles.portalMenuContainer,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.border,
+                shadowColor: theme.colors.shadowColor,
+                left: menuPosition.x,
+                top: menuPosition.y,
+                opacity: menuAnim,
+                transform: [
+                  {
+                    translateY: menuAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-10, 0],
+                    }),
+                  },
+                  {
+                    scale: menuAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.95, 1],
+                    }),
+                  },
+                ],
+              }
+            ]}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                setMenuOpenFor(null);
+                const song = columns.flat().find(s => s.url === menuOpenFor);
+                if (song) {
+                  setSelectedSong(song);
+                  setShowModal(true);
+                }
+              }}
+              style={[
+                styles.portalMenuItem,
+                { borderBottomColor: theme.colors.border }
+              ]}
+              activeOpacity={0.7}
+            >
+              <View style={[
+                styles.portalMenuIconContainer,
+                { backgroundColor: theme.colors.primary + '20' }
+              ]}>
+                <Ionicons name="musical-notes" size={16} color={theme.colors.primary} />
+              </View>
+              <Text style={[styles.portalMenuText, { color: theme.colors.textPrimary }]}>
+                Add to Playlist
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={() => setMenuOpenFor(null)}
+              style={styles.portalMenuItem}
+              activeOpacity={0.7}
+            >
+              <View style={[
+                styles.portalMenuIconContainer,
+                { backgroundColor: theme.colors.textSecondary + '20' }
+              ]}>
+                <Ionicons name="close" size={16} color={theme.colors.textSecondary} />
+              </View>
+              <Text style={[styles.portalMenuText, { color: theme.colors.textSecondary }]}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
@@ -65,7 +179,7 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
           Recently Played
         </Text>
         <TouchableOpacity style={styles.seeAll}>
-          <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>
+          <Text style={[styles.seeAllText, { color: theme.colors.textPrimary }]}>
             See All
           </Text>
         </TouchableOpacity>
@@ -78,8 +192,8 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
           showsHorizontalScrollIndicator={false}
           keyExtractor={(_, idx) => "col" + idx}
           renderItem={({ item: col }) => (
-            <View style={{ marginRight: 16 }}>
-              {col.map((song) => (
+            <View style={{ marginRight: 16, paddingBottom: 16 }}>
+              {col.map((song, songIndex) => (
                 <View style={{ position: "relative" }} key={song.url}>
                   <TouchableOpacity
                     onPress={() => playRecentSong(song)}
@@ -114,10 +228,7 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
                       />
                     </TouchableOpacity>
                     <TouchableOpacity
-                      onPress={() => {
-                        menuAnim.setValue(0);
-                        setMenuOpenFor(song.url);
-                      }}
+                      onPress={(event) => handleMenuPress(song, event)}
                       style={styles.actionButton}
                     >
                       <Ionicons
@@ -127,122 +238,15 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
                       />
                     </TouchableOpacity>
                   </View>
-
-                  {menuOpenFor === song.url && (
-                    <>
-                      {/* Overlay to close menu on outside click */}
-                      <TouchableOpacity
-                        activeOpacity={1}
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          zIndex: 98,
-                        }}
-                        onPress={() => setMenuOpenFor(null)}
-                      />
-                      <Animated.View
-                        style={{
-                          position: "absolute",
-                          top: 50,
-                          right: 10,
-                          backgroundColor: theme.colors.surface,
-                          borderRadius: 12,
-                          shadowColor: theme.colors.shadowColor,
-                          shadowOffset: { width: 0, height: 8 },
-                          shadowOpacity: 0.15,
-                          shadowRadius: 12,
-                          elevation: 8,
-                          zIndex: 100,
-                          minWidth: 160,
-                          overflow: 'hidden',
-                          borderWidth: 1,
-                          borderColor: theme.colors.border,
-                          opacity: menuAnim,
-                          transform: [
-                            {
-                              translateY: menuAnim.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [20, 0],
-                              }),
-                            },
-                          ],
-                        }}
-                      >
-                        <TouchableOpacity
-                          onPress={() => {
-                            setMenuOpenFor(null);
-                            setSelectedSong(song);
-                            setShowModal(true);
-                          }}
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            padding: 16,
-                            borderBottomWidth: 1,
-                            borderBottomColor: theme.colors.border,
-                          }}
-                          activeOpacity={0.7}
-                        >
-                          <View style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 16,
-                            backgroundColor: theme.colors.primary + '20',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            marginRight: 12,
-                          }}>
-                            <Ionicons name="musical-notes" size={16} color={theme.colors.primary} />
-                          </View>
-                          <Text style={{ 
-                            color: theme.colors.textPrimary, 
-                            fontSize: 14, 
-                            fontWeight: '500' 
-                          }}>
-                            Add to Playlist
-                          </Text>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity
-                          onPress={() => setMenuOpenFor(null)}
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            padding: 16,
-                          }}
-                          activeOpacity={0.7}
-                        >
-                          <View style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 16,
-                            backgroundColor: theme.colors.textSecondary + '20',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            marginRight: 12,
-                          }}>
-                            <Ionicons name="close" size={16} color={theme.colors.textSecondary} />
-                          </View>
-                          <Text style={{ 
-                            color: theme.colors.textSecondary, 
-                            fontSize: 14, 
-                            fontWeight: '500' 
-                          }}>
-                            Cancel
-                          </Text>
-                        </TouchableOpacity>
-                      </Animated.View>
-                    </>
-                  )}
                 </View>
               ))}
             </View>
           )}
         />
       </View>
+
+      <MenuPortal />
+
       {showModal && (
         <PlayListModal
           selectedSong={selectedSong}
@@ -259,7 +263,7 @@ export default RecentlyPlayed;
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 24,
+    paddingBottom: 30,
   },
   headerRow: {
     flexDirection: "row",
@@ -320,5 +324,39 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     padding: 6,
+  },
+  // Portal-based menu styles
+  portalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  portalMenuContainer: {
+    position: 'absolute',
+    borderRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 12,
+    minWidth: 180,
+    overflow: 'hidden',
+    borderWidth: 1,
+  },
+  portalMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+  },
+  portalMenuIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  portalMenuText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

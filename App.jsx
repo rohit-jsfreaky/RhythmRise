@@ -9,7 +9,9 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { MenuProvider } from "react-native-popup-menu";
 import Tabs from "./src/Screens/Tabs/Tabs";
 import Favorites from "./src/Screens/Favorites/Favorites";
-import Playlist from "./src/Screens/Playlist/Playlist";
+import ArtistSongs from "./src/Screens/Artist/ArtistSongs";
+import PlayerScreen from "./src/Screens/Player/PlayerScreen";
+import MiniPlayer from "./src/Components/MiniPlayer";
 import { ThemeProvider, useTheme } from "./src/contexts/ThemeContext";
 
 const Stack = createNativeStackNavigator();
@@ -60,8 +62,13 @@ function AppContent() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="Playlist"
-            component={Playlist}
+            name="ArtistSongs"
+            component={ArtistSongs}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Player"
+            component={PlayerScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
