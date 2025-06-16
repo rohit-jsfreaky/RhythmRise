@@ -3,11 +3,9 @@ import {
   Text,
   View,
   TouchableOpacity,
-  ScrollView,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
-import TrackPlayer from "react-native-track-player";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -16,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import SongsList from "../../Components/SongsList";
 import PlayListModal from "../../Components/PlayListModal";
 import { useTheme } from "../../contexts/ThemeContext";
+import { removeFavorite, toggleFavorite } from "../../utils/Favorite";
 
 const Playlist = () => {
   const [favorites, setFavorites] = useState([]);
@@ -53,27 +52,7 @@ const Playlist = () => {
   };
 
   const playPlaylistSong = async (song) => {
-    try {
-      await TrackPlayer.reset();
-      for (const s of songs) {
-        await TrackPlayer.add({
-          id: s.url,
-          url: `https://rhythm-rise-backend.vercel.app/api/music/get-audio-stream?url=${encodeURIComponent(
-            s.url
-          )}&quality=high`,
-          title: s.title,
-          artist: s.uploader,
-          artwork: s.thumbnail,
-          duration: getSecondsFromDuration(s.duration),
-        });
-      }
-      const idx = songs.findIndex((s) => s.url === song.url);
-      if (idx > 0) await TrackPlayer.skip(idx);
-      await TrackPlayer.play();
-      navigation.navigate("Player");
-    } catch (e) {
-      console.log("Error playing playlist:", e);
-    }
+    await playAllSongs(song, navigation, songs);
   };
 
   const addToPlaylist = (song) => {
@@ -83,62 +62,38 @@ const Playlist = () => {
 
   const isFavorite = (song) => favorites.some((fav) => fav.url === song.url);
 
-  const toggleFavorite = async (song) => {
-    let updated;
-    if (isFavorite(song)) {
-      updated = favorites.filter((fav) => fav.url !== song.url);
-    } else {
-      updated = [song, ...favorites.filter((fav) => fav.url !== song.url)];
-    }
-    setFavorites(updated);
-    await SecureStore.setItemAsync("favorites", JSON.stringify(updated));
+  const handletoggleFavorite = async (song) => {
+    await toggleFavorite(song, favorites, setFavorites);
   };
 
   const handleRemoveSong = async (song) => {
-    const stored = await SecureStore.getItemAsync("playlists");
-    let playlistsArr = stored ? JSON.parse(stored) : [];
-    playlistsArr = playlistsArr.map((pl) =>
-      pl.title === title
-        ? { ...pl, songs: pl.songs.filter((s) => s.url !== song.url) }
-        : pl
-    );
-    await SecureStore.setItemAsync("playlists", JSON.stringify(playlistsArr));
-    setSongs((prev) => prev.filter((s) => s.url !== song.url));
+    await removeFavorite(song, title, setSongs);
   };
 
   const playAllSongs = async () => {
     if (songs.length === 0) return;
 
-    try {
-      await TrackPlayer.reset();
-      for (const s of songs) {
-        await TrackPlayer.add({
-          id: s.url,
-          url: `https://rhythm-rise-backend.vercel.app/api/music/get-audio-stream?url=${encodeURIComponent(
-            s.url
-          )}&quality=high`,
-          title: s.title,
-          artist: s.uploader,
-          artwork: s.thumbnail,
-          duration: getSecondsFromDuration(s.duration),
-        });
-      }
-      await TrackPlayer.play();
-      navigation.navigate("Player");
-    } catch (e) {
-      console.log("Error playing all songs:", e);
-    }
+    await playAllSongs(null, navigation, songs);
   };
 
   // Generate dynamic playlist icon based on title
   const getPlaylistIcon = (title) => {
-    const icons = ["musical-notes", "library", "headset", "radio", "disc", "albums"];
+    const icons = [
+      "musical-notes",
+      "library",
+      "headset",
+      "radio",
+      "disc",
+      "albums",
+    ];
     const index = title.length % icons.length;
     return icons[index];
   };
 
   return (
-    <View style={[styles.scrollView, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.scrollView, { backgroundColor: theme.colors.background }]}
+    >
       <LinearGradient
         colors={theme.colors.gradient}
         start={{ x: 0, y: 0 }}
@@ -154,31 +109,45 @@ const Playlist = () => {
               onPress={() => navigation.goBack()}
               style={[
                 styles.backButton,
-                { backgroundColor: theme.colors.glassBackground }
+                { backgroundColor: theme.colors.glassBackground },
               ]}
             >
-              <Ionicons name="chevron-back" size={24} color={theme.colors.textPrimary} />
+              <Ionicons
+                name="chevron-back"
+                size={24}
+                color={theme.colors.textPrimary}
+              />
             </TouchableOpacity>
-            
+
             <View style={styles.headerContent}>
               <View style={styles.titleContainer}>
-                <Text style={[styles.title, { color: theme.colors.textPrimary }]} numberOfLines={1}>
+                <Text
+                  style={[styles.title, { color: theme.colors.textPrimary }]}
+                  numberOfLines={1}
+                >
                   {title}
                 </Text>
-                <Text style={[styles.songCount, { color: theme.colors.textSecondary }]}>
+                <Text
+                  style={[
+                    styles.songCount,
+                    { color: theme.colors.textSecondary },
+                  ]}
+                >
                   {songs.length} {songs.length === 1 ? "song" : "songs"}
                 </Text>
               </View>
-              
+
               {/* Playlist Icon */}
-              <View style={[
-                styles.playlistIconContainer,
-                { backgroundColor: theme.colors.primary + "33" } // 20% opacity
-              ]}>
-                <Ionicons 
-                  name={getPlaylistIcon(title)} 
-                  size={24} 
-                  color={theme.colors.primary} 
+              <View
+                style={[
+                  styles.playlistIconContainer,
+                  { backgroundColor: theme.colors.primary + "33" }, // 20% opacity
+                ]}
+              >
+                <Ionicons
+                  name={getPlaylistIcon(title)}
+                  size={24}
+                  color={theme.colors.primary}
                 />
               </View>
             </View>
@@ -192,7 +161,7 @@ const Playlist = () => {
                   styles.playAllButton,
                   {
                     shadowColor: theme.colors.shadowColor,
-                  }
+                  },
                 ]}
                 onPress={playAllSongs}
                 activeOpacity={0.8}
@@ -203,18 +172,27 @@ const Playlist = () => {
                   end={{ x: 1, y: 1 }}
                   style={styles.playAllGradient}
                 >
-                  <Ionicons name="play" size={20} color={theme.colors.textPrimary} />
-                  <Text style={[styles.playAllText, { color: theme.colors.textPrimary }]}>
+                  <Ionicons
+                    name="play"
+                    size={20}
+                    color={theme.colors.textPrimary}
+                  />
+                  <Text
+                    style={[
+                      styles.playAllText,
+                      { color: theme.colors.textPrimary },
+                    ]}
+                  >
                     Play All
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
-              
+
               {/* Shuffle Button */}
               <TouchableOpacity
                 style={[
                   styles.shuffleButton,
-                  { backgroundColor: theme.colors.glassBackground }
+                  { backgroundColor: theme.colors.glassBackground },
                 ]}
                 onPress={() => {
                   // Add shuffle functionality
@@ -222,7 +200,11 @@ const Playlist = () => {
                 }}
                 activeOpacity={0.8}
               >
-                <Ionicons name="shuffle" size={20} color={theme.colors.textSecondary} />
+                <Ionicons
+                  name="shuffle"
+                  size={20}
+                  color={theme.colors.textSecondary}
+                />
               </TouchableOpacity>
             </View>
           )}
@@ -232,53 +214,88 @@ const Playlist = () => {
             {songs.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <LinearGradient
-                  colors={[theme.colors.primary + "40", theme.colors.secondary + "20"]} // 25%, 12% opacity
+                  colors={[
+                    theme.colors.primary + "40",
+                    theme.colors.secondary + "20",
+                  ]} // 25%, 12% opacity
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={[
                     styles.emptyIconContainer,
-                    { 
+                    {
                       backgroundColor: theme.colors.glassBackground,
                       shadowColor: theme.colors.shadowColor,
-                    }
+                    },
                   ]}
                 >
-                  <Ionicons 
-                    name="musical-notes" 
-                    size={48} 
-                    color={theme.colors.textPrimary} 
+                  <Ionicons
+                    name="musical-notes"
+                    size={48}
+                    color={theme.colors.textPrimary}
                   />
                 </LinearGradient>
-                
-                <Text style={[styles.emptyTitle, { color: theme.colors.textPrimary }]}>
+
+                <Text
+                  style={[
+                    styles.emptyTitle,
+                    { color: theme.colors.textPrimary },
+                  ]}
+                >
                   Playlist is empty
                 </Text>
-                <Text style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}>
+                <Text
+                  style={[
+                    styles.emptySubtitle,
+                    { color: theme.colors.textSecondary },
+                  ]}
+                >
                   Add songs from the search tab
                 </Text>
-                
+
                 {/* Enhanced Empty State Tips */}
                 <View style={styles.emptyTips}>
                   <View style={styles.tipItem}>
-                    <View style={[
-                      styles.tipIcon,
-                      { backgroundColor: theme.colors.accent + "33" } // 20% opacity
-                    ]}>
-                      <Ionicons name="search" size={16} color={theme.colors.accent} />
+                    <View
+                      style={[
+                        styles.tipIcon,
+                        { backgroundColor: theme.colors.accent + "33" }, // 20% opacity
+                      ]}
+                    >
+                      <Ionicons
+                        name="search"
+                        size={16}
+                        color={theme.colors.accent}
+                      />
                     </View>
-                    <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                    <Text
+                      style={[
+                        styles.tipText,
+                        { color: theme.colors.textSecondary },
+                      ]}
+                    >
                       Search for songs in the Search tab
                     </Text>
                   </View>
-                  
+
                   <View style={styles.tipItem}>
-                    <View style={[
-                      styles.tipIcon,
-                      { backgroundColor: theme.colors.secondary + "33" } // 20% opacity
-                    ]}>
-                      <Ionicons name="add" size={16} color={theme.colors.secondary} />
+                    <View
+                      style={[
+                        styles.tipIcon,
+                        { backgroundColor: theme.colors.secondary + "33" }, // 20% opacity
+                      ]}
+                    >
+                      <Ionicons
+                        name="add"
+                        size={16}
+                        color={theme.colors.secondary}
+                      />
                     </View>
-                    <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                    <Text
+                      style={[
+                        styles.tipText,
+                        { color: theme.colors.textSecondary },
+                      ]}
+                    >
                       Tap the menu button to add to playlist
                     </Text>
                   </View>
@@ -290,7 +307,7 @@ const Playlist = () => {
                 data={songs}
                 isFavorite={isFavorite}
                 playSong={playPlaylistSong}
-                toggleFavorite={toggleFavorite}
+                toggleFavorite={handletoggleFavorite}
                 onRemove={handleRemoveSong}
               />
             )}

@@ -5,12 +5,13 @@ import { StatusBar } from "expo-status-bar";
 import { LinearGradient } from "expo-linear-gradient";
 import TopTitle from "../../Components/TopTitle";
 import { Ionicons } from "@expo/vector-icons";
-import TrackPlayer from "react-native-track-player";
 import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
 import PlayListModal from "../../Components/PlayListModal";
 import SongsList from "../../Components/SongsList";
 import { useTheme } from "../../contexts/ThemeContext";
+import { playAllSongs } from "../../utils/songs";
+import { toggleFavorite } from "../../utils/Favorite";
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
@@ -29,60 +30,23 @@ const Favorites = () => {
 
   const isFavorite = (song) => favorites.some((fav) => fav.url === song.url);
 
-  const toggleFavorite = async (song) => {
-    let updated;
-    if (isFavorite(song)) {
-      updated = favorites.filter((fav) => fav.url !== song.url);
-    } else {
-      updated = [song, ...favorites.filter((fav) => fav.url !== song.url)];
-    }
-    setFavorites(updated);
-    await SecureStore.setItemAsync("favorites", JSON.stringify(updated));
+  const handletoggleFavorite = async (song) => {
+    await toggleFavorite(song, favorites, setFavorites);
   };
 
   // Play all favorites, start from pressed song
   const playFavoriteSong = async (song) => {
-    try {
-      await TrackPlayer.reset();
-      // Add all favorites to queue
-      for (const fav of favorites) {
-        await TrackPlayer.add({
-          id: fav.url,
-          url: `https://rhythm-rise-backend.vercel.app/api/music/get-audio-stream?url=${encodeURIComponent(
-            fav.url
-          )}&quality=high`,
-          title: fav.title,
-          artist: fav.uploader,
-          artwork: fav.thumbnail,
-          duration:
-            fav.duration && typeof fav.duration === "string"
-              ? getSecondsFromDuration(fav.duration)
-              : fav.duration || 0,
-        });
-      }
-      // Find index of pressed song
-      const idx = favorites.findIndex((f) => f.url === song.url);
-      if (idx > 0) await TrackPlayer.skip(idx);
-      await TrackPlayer.play();
-      navigation.replace("Tabs", { screen: "Player" });
-    } catch (e) {
-      console.log("Error playing favorite:", e);
-    }
+    await playAllSongs(song, navigation, favorites);
   };
-
-  const getSecondsFromDuration = (timeStr) => {
-    if (!timeStr) return 0;
-    const [mins, secs] = timeStr.split(":").map(Number);
-    return mins * 60 + secs;
-  };
-
   const addToPlaylist = (song) => {
     setSelectedSong(song);
     setShowModal(true);
   };
 
   return (
-    <View style={[styles.scrollView, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.scrollView, { backgroundColor: theme.colors.background }]}
+    >
       <LinearGradient
         colors={theme.colors.gradient}
         start={{ x: 0, y: 0 }}
@@ -97,33 +61,61 @@ const Favorites = () => {
             {favorites.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <LinearGradient
-                  colors={[theme.colors.errorColor + "40", theme.colors.errorColor + "20"]} // 25%, 12% opacity
+                  colors={[
+                    theme.colors.errorColor + "40",
+                    theme.colors.errorColor + "20",
+                  ]} // 25%, 12% opacity
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={[
                     styles.emptyIconContainer,
-                    { 
+                    {
                       backgroundColor: theme.colors.glassBackground,
                       shadowColor: theme.colors.shadowColor,
-                    }
+                    },
                   ]}
                 >
-                  <Ionicons name="heart" size={48} color={theme.colors.errorColor} />
+                  <Ionicons
+                    name="heart"
+                    size={48}
+                    color={theme.colors.errorColor}
+                  />
                 </LinearGradient>
-                <Text style={[styles.emptyTitle, { color: theme.colors.textPrimary }]}>
+                <Text
+                  style={[
+                    styles.emptyTitle,
+                    { color: theme.colors.textPrimary },
+                  ]}
+                >
                   No favorites yet
                 </Text>
-                <Text style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}>
+                <Text
+                  style={[
+                    styles.emptySubtitle,
+                    { color: theme.colors.textSecondary },
+                  ]}
+                >
                   Songs you love will appear here
                 </Text>
                 <View style={styles.emptyTip}>
-                  <View style={[
-                    styles.tipIconContainer,
-                    { backgroundColor: theme.colors.primary + "33" } // 20% opacity
-                  ]}>
-                    <Ionicons name="information-circle" size={20} color={theme.colors.primary} />
+                  <View
+                    style={[
+                      styles.tipIconContainer,
+                      { backgroundColor: theme.colors.primary + "33" }, // 20% opacity
+                    ]}
+                  >
+                    <Ionicons
+                      name="information-circle"
+                      size={20}
+                      color={theme.colors.primary}
+                    />
                   </View>
-                  <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.tipText,
+                      { color: theme.colors.textSecondary },
+                    ]}
+                  >
                     Tap the heart icon on any song to add it here
                   </Text>
                 </View>
@@ -131,34 +123,57 @@ const Favorites = () => {
             ) : (
               <View style={styles.songsContainer}>
                 {/* Statistics Card */}
-                <View style={[
-                  styles.statsCard,
-                  {
-                    backgroundColor: theme.colors.glassBackground,
-                    borderColor: theme.colors.border,
-                    shadowColor: theme.colors.shadowColor,
-                  }
-                ]}>
+                <View
+                  style={[
+                    styles.statsCard,
+                    {
+                      backgroundColor: theme.colors.glassBackground,
+                      borderColor: theme.colors.border,
+                      shadowColor: theme.colors.shadowColor,
+                    },
+                  ]}
+                >
                   <LinearGradient
-                    colors={[theme.colors.primary + "33", theme.colors.secondary + "20"]} // 20%, 12% opacity
+                    colors={[
+                      theme.colors.primary + "33",
+                      theme.colors.secondary + "20",
+                    ]} // 20%, 12% opacity
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.statsGradient}
                   >
                     <View style={styles.statsContent}>
                       <View style={styles.statsInfo}>
-                        <Text style={[styles.statsNumber, { color: theme.colors.textPrimary }]}>
+                        <Text
+                          style={[
+                            styles.statsNumber,
+                            { color: theme.colors.textPrimary },
+                          ]}
+                        >
                           {favorites.length}
                         </Text>
-                        <Text style={[styles.statsLabel, { color: theme.colors.textSecondary }]}>
-                          {favorites.length === 1 ? 'Favorite Song' : 'Favorite Songs'}
+                        <Text
+                          style={[
+                            styles.statsLabel,
+                            { color: theme.colors.textSecondary },
+                          ]}
+                        >
+                          {favorites.length === 1
+                            ? "Favorite Song"
+                            : "Favorite Songs"}
                         </Text>
                       </View>
-                      <View style={[
-                        styles.statsIconContainer,
-                        { backgroundColor: theme.colors.errorColor + "33" } // 20% opacity
-                      ]}>
-                        <Ionicons name="heart" size={24} color={theme.colors.errorColor} />
+                      <View
+                        style={[
+                          styles.statsIconContainer,
+                          { backgroundColor: theme.colors.errorColor + "33" }, // 20% opacity
+                        ]}
+                      >
+                        <Ionicons
+                          name="heart"
+                          size={24}
+                          color={theme.colors.errorColor}
+                        />
                       </View>
                     </View>
                   </LinearGradient>
@@ -169,7 +184,7 @@ const Favorites = () => {
                   data={favorites}
                   isFavorite={isFavorite}
                   playSong={playFavoriteSong}
-                  toggleFavorite={toggleFavorite}
+                  toggleFavorite={handletoggleFavorite}
                 />
               </View>
             )}

@@ -11,8 +11,9 @@ import {
 import React, { useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../contexts/ThemeContext";
+import { addToPlayList } from "../utils/playlist";
 
 const PlayListModal = ({
   showModal,
@@ -24,25 +25,11 @@ const PlayListModal = ({
   const { theme } = useTheme();
 
   const handleAddToPlaylist = async (playlistTitle) => {
-    const stored = await SecureStore.getItemAsync("playlists");
-    let playlistsArr = stored ? JSON.parse(stored) : [];
-    playlistsArr = playlistsArr.map((pl) =>
-      pl.title === playlistTitle
-        ? {
-            ...pl,
-            songs: [
-              selectedSong,
-              ...pl.songs.filter((s) => s.url !== selectedSong.url),
-            ],
-          }
-        : pl
-    );
-    await SecureStore.setItemAsync("playlists", JSON.stringify(playlistsArr));
-    setShowModal(false);
-    setSelectedSong(null);
-    ToastAndroid.show(
-      `Added to playlist "${playlistTitle}"`,
-      ToastAndroid.SHORT
+    await addToPlayList(
+      playlistTitle,
+      selectedSong,
+      setShowModal,
+      setSelectedSong
     );
   };
 
@@ -63,37 +50,66 @@ const PlayListModal = ({
       <Pressable
         style={[
           styles.modalOverlay,
-          { backgroundColor: theme.colors.background + "D9" } // 85% opacity
+          { backgroundColor: theme.colors.background + "D9" }, // 85% opacity
         ]}
         onPress={() => setShowModal(false)}
       >
-        <View style={[styles.modalCard, { backgroundColor: theme.colors.surface }]}>
+        <View
+          style={[styles.modalCard, { backgroundColor: theme.colors.surface }]}
+        >
           <View style={styles.modalHeader}>
             {selectedSong?.thumbnail && (
-              <Image 
-                source={{uri: selectedSong.thumbnail}} 
-                style={[styles.songThumbnail, { backgroundColor: theme.colors.secondary + "30" }]}
+              <Image
+                source={{ uri: selectedSong.thumbnail }}
+                style={[
+                  styles.songThumbnail,
+                  { backgroundColor: theme.colors.secondary + "30" },
+                ]}
               />
             )}
             <View style={styles.modalHeaderText}>
-              <Text style={[styles.modalTitle, { color: theme.colors.textPrimary }]}>
+              <Text
+                style={[styles.modalTitle, { color: theme.colors.textPrimary }]}
+              >
                 Add to Playlist
               </Text>
-              <Text style={[styles.songTitle, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+              <Text
+                style={[
+                  styles.songTitle,
+                  { color: theme.colors.textSecondary },
+                ]}
+                numberOfLines={1}
+              >
                 {selectedSong?.title}
               </Text>
             </View>
           </View>
-          
-          <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
-          
+
+          <View
+            style={[styles.divider, { backgroundColor: theme.colors.border }]}
+          />
+
           {playlists.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="musical-notes" size={36} color={theme.colors.textSecondary} />
-              <Text style={[styles.modalEmpty, { color: theme.colors.textSecondary }]}>
+              <Ionicons
+                name="musical-notes"
+                size={36}
+                color={theme.colors.textSecondary}
+              />
+              <Text
+                style={[
+                  styles.modalEmpty,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
                 No playlists found.
               </Text>
-              <Text style={[styles.emptySubtext, { color: theme.colors.textSecondary }]}>
+              <Text
+                style={[
+                  styles.emptySubtext,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
                 Create a playlist in the Library tab
               </Text>
             </View>
@@ -112,22 +128,43 @@ const PlayListModal = ({
                     end={{ x: 1, y: 1 }}
                     style={styles.playlistIconBg}
                   >
-                    <Ionicons name="musical-notes" size={20} color={theme.colors.textPrimary} />
+                    <Ionicons
+                      name="musical-notes"
+                      size={20}
+                      color={theme.colors.textPrimary}
+                    />
                   </LinearGradient>
-                  <Text style={[styles.modalPlaylistText, { color: theme.colors.textPrimary }]}>
+                  <Text
+                    style={[
+                      styles.modalPlaylistText,
+                      { color: theme.colors.textPrimary },
+                    ]}
+                  >
                     {pl.title}
                   </Text>
-                  <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={theme.colors.textSecondary}
+                  />
                 </TouchableOpacity>
               ))}
             </View>
           )}
-          
+
           <TouchableOpacity
             onPress={() => setShowModal(false)}
-            style={[styles.modalCancelBtn, { backgroundColor: theme.colors.accent }]}
+            style={[
+              styles.modalCancelBtn,
+              { backgroundColor: theme.colors.accent },
+            ]}
           >
-            <Text style={[styles.modalCancelText, { color: theme.colors.textPrimary }]}>
+            <Text
+              style={[
+                styles.modalCancelText,
+                { color: theme.colors.textPrimary },
+              ]}
+            >
               Cancel
             </Text>
           </TouchableOpacity>
@@ -147,7 +184,7 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     borderRadius: 20,
-    width: '85%',
+    width: "85%",
     maxWidth: 340,
     paddingTop: 24,
     paddingBottom: 16,
@@ -159,9 +196,9 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
     paddingHorizontal: 24,
     marginBottom: 16,
   },
@@ -184,12 +221,12 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    width: '100%',
+    width: "100%",
     marginBottom: 16,
   },
   emptyState: {
     padding: 24,
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalEmpty: {
     fontSize: 15,
@@ -201,13 +238,13 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   playlistsContainer: {
-    width: '100%',
+    width: "100%",
     paddingHorizontal: 12,
     maxHeight: 300,
   },
   modalPlaylistBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
@@ -218,8 +255,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   modalPlaylistText: {
