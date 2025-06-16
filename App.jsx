@@ -13,6 +13,7 @@ import ArtistSongs from "./src/Screens/Artist/ArtistSongs";
 import PlayerScreen from "./src/Screens/Player/PlayerScreen";
 import MiniPlayer from "./src/Components/MiniPlayer";
 import { ThemeProvider, useTheme } from "./src/contexts/ThemeContext";
+import Playlist from "./src/Screens/Playlist/Playlist";
 
 const Stack = createNativeStackNavigator();
 
@@ -69,6 +70,11 @@ function AppContent() {
           <Stack.Screen
             name="Player"
             component={PlayerScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Playlist"
+            component={Playlist}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

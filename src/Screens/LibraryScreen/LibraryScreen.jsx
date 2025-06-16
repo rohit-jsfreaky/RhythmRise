@@ -18,6 +18,7 @@ import PlaylistCardList from "../../Components/PlaylistCardList";
 import DeletePlaylistModal from "../../Components/DeletePlaylistModal";
 import RenamePlaylistModal from "../../Components/RenamePlaylistModal";
 import { useTheme } from "../../contexts/ThemeContext";
+import { createPlaylist, deletePlaylist } from "../../utils/playlist";
 
 const LibraryScreen = () => {
   const [playlists, setPlaylists] = useState([]);
@@ -36,20 +37,18 @@ const LibraryScreen = () => {
     })();
   }, []);
 
-  const createPlaylist = async () => {
-    if (!newTitle.trim()) return;
-    const updated = [{ title: newTitle, songs: [] }, ...playlists];
-    setPlaylists(updated);
-    await SecureStore.setItemAsync("playlists", JSON.stringify(updated));
-    setNewTitle("");
+  const handlecreatePlaylist = async () => {
+    await createPlaylist(newTitle, setPlaylists, setNewTitle, playlists);
   };
 
   const handleDeletePlaylist = async () => {
-    const updated = playlists.filter((pl) => pl.title !== playlistToDelete);
-    setPlaylists(updated);
-    await SecureStore.setItemAsync("playlists", JSON.stringify(updated));
-    setShowDeleteModal(false);
-    setPlaylistToDelete(null);
+    await deletePlaylist(
+      playlists,
+      setPlaylists,
+      setShowDeleteModal,
+      setPlaylistToDelete,
+      playlistToDelete
+    );
   };
 
   const getPlaylistColumns = (data, columns = 2) => {
@@ -77,7 +76,7 @@ const LibraryScreen = () => {
         <SafeAreaView style={styles.screen}>
           <StatusBar style="light" />
           <TopTitle title="Library" />
-          
+
           <View style={styles.createPlaylistSection}>
             <Text style={[styles.heading, { color: theme.colors.textPrimary }]}>
               Create Playlist
@@ -90,7 +89,7 @@ const LibraryScreen = () => {
                     borderColor: theme.colors.border,
                     backgroundColor: theme.colors.glassBackground,
                     color: theme.colors.textPrimary,
-                  }
+                  },
                 ]}
                 placeholder="Playlist title"
                 placeholderTextColor={theme.colors.textSecondary}
@@ -98,14 +97,14 @@ const LibraryScreen = () => {
                 onChangeText={setNewTitle}
                 selectionColor={theme.colors.primary}
               />
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[
                   styles.addBtn,
                   {
                     shadowColor: theme.colors.shadowColor,
-                  }
-                ]} 
-                onPress={createPlaylist}
+                  },
+                ]}
+                onPress={handlecreatePlaylist}
               >
                 <LinearGradient
                   colors={theme.colors.activeGradient}
@@ -113,36 +112,52 @@ const LibraryScreen = () => {
                   end={{ x: 1, y: 1 }}
                   style={styles.addBtnGradient}
                 >
-                  <Ionicons name="add" size={24} color={theme.colors.textPrimary} />
+                  <Ionicons
+                    name="add"
+                    size={24}
+                    color={theme.colors.textPrimary}
+                  />
                 </LinearGradient>
               </TouchableOpacity>
             </View>
           </View>
-          
+
           <View style={styles.favoritesSection}>
             <FavoritesCard />
           </View>
-          
+
           <Text style={[styles.heading, { color: theme.colors.textPrimary }]}>
             Your Playlists
           </Text>
           <View style={styles.playlistsContainer}>
             {playlists.length === 0 ? (
               <View style={styles.emptyPlaylistsContainer}>
-                <View style={[
-                  styles.emptyIconContainer,
-                  { backgroundColor: theme.colors.glassBackground }
-                ]}>
-                  <Ionicons 
-                    name="musical-notes" 
-                    size={48} 
+                <View
+                  style={[
+                    styles.emptyIconContainer,
+                    { backgroundColor: theme.colors.glassBackground },
+                  ]}
+                >
+                  <Ionicons
+                    name="musical-notes"
+                    size={48}
                     color={theme.colors.textSecondary + "33"} // 20% opacity
                   />
                 </View>
-                <Text style={[styles.emptyPlaylistsText, { color: theme.colors.textPrimary }]}>
+                <Text
+                  style={[
+                    styles.emptyPlaylistsText,
+                    { color: theme.colors.textPrimary },
+                  ]}
+                >
                   No playlists yet
                 </Text>
-                <Text style={[styles.emptyPlaylistsSubText, { color: theme.colors.textSecondary }]}>
+                <Text
+                  style={[
+                    styles.emptyPlaylistsSubText,
+                    { color: theme.colors.textSecondary },
+                  ]}
+                >
                   Create your first playlist above
                 </Text>
               </View>
@@ -156,7 +171,7 @@ const LibraryScreen = () => {
               />
             )}
           </View>
-          
+
           {menuOpenFor && (
             <TouchableOpacity
               activeOpacity={1}
@@ -173,14 +188,14 @@ const LibraryScreen = () => {
           )}
         </SafeAreaView>
       </LinearGradient>
-      
+
       <DeletePlaylistModal
         handleDeletePlaylist={handleDeletePlaylist}
         playlistToDelete={playlistToDelete}
         setShowDeleteModal={setShowDeleteModal}
         showDeleteModal={showDeleteModal}
       />
-      
+
       <RenamePlaylistModal
         playlistToDelete={playlistToDelete}
         playlists={playlists}
@@ -201,7 +216,7 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
-    minHeight: '100%',
+    minHeight: "100%",
   },
   screen: {
     flex: 1,
@@ -239,8 +254,8 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   favoritesSection: {
     marginBottom: 24,
@@ -249,8 +264,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   emptyPlaylistsContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 60,
     opacity: 0.8,
   },
@@ -258,18 +273,18 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 20,
   },
   emptyPlaylistsText: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
   },
   emptyPlaylistsSubText: {
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 

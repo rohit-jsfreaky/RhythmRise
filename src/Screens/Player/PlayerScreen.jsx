@@ -7,10 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
-  StatusBar as RNStatusBar,
-  Modal,
-  Pressable,
-  FlatList,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import TrackPlayer, {
@@ -25,13 +21,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as Haptics from "expo-haptics";
 import * as SecureStore from "expo-secure-store";
-import ActionSheet from "react-native-actions-sheet";
 import NoTrackPlayer from "../../Components/NoTrackPlayer";
 import PlayListModal from "../../Components/PlayListModal";
 import PlayerMenu from "../../Components/PlayerMenu";
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../../contexts/ThemeContext";
-
+import RemovePlaylistModal from "../../Components/RemovePlaylistModal";
+import QueueActionSheet from "../../Components/QueueActionSheet";
 
 const { width } = Dimensions.get("window");
 const ARTWORK_SIZE = width * 0.75;
@@ -262,82 +258,6 @@ const PlayerScreen = () => {
       console.log("Error removing from playlists:", error);
     }
   };
-
-  // Queue Item Component
-  const QueueItem = ({ item, index, isCurrentTrack }) => (
-    <TouchableOpacity
-      style={[
-        styles.queueItem,
-        isCurrentTrack && {
-          backgroundColor: theme.colors.primary + "20",
-          borderColor: theme.colors.primary + "40",
-          borderWidth: 1,
-        },
-      ]}
-      onPress={() => handleQueueItemPress(item, index)}
-      activeOpacity={0.7}
-    >
-      <Image
-        source={{ uri: item.artwork }}
-        style={[
-          styles.queueItemImage,
-          { backgroundColor: theme.colors.accent + "40" },
-        ]}
-      />
-
-      <View style={styles.queueItemInfo}>
-        <Text
-          style={[
-            styles.queueItemTitle,
-            {
-              color: isCurrentTrack
-                ? theme.colors.textPrimary
-                : theme.colors.textPrimary,
-            },
-          ]}
-          numberOfLines={1}
-        >
-          {item.title}
-        </Text>
-        <Text
-          style={[
-            styles.queueItemArtist,
-            { color: theme.colors.textSecondary },
-          ]}
-          numberOfLines={1}
-        >
-          {item.artist}
-        </Text>
-      </View>
-
-      <View style={styles.queueItemActions}>
-        {isCurrentTrack && (
-          <View
-            style={[
-              styles.nowPlayingIndicator,
-              { backgroundColor: theme.colors.primary },
-            ]}
-          >
-            <Ionicons name="musical-note" size={12} color="#FFFFFF" />
-          </View>
-        )}
-
-        {queue.length > 1 && (
-          <TouchableOpacity
-            style={styles.removeButton}
-            onPress={() => handleRemoveFromQueue(index)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons
-              name="close"
-              size={18}
-              color={theme.colors.textSecondary}
-            />
-          </TouchableOpacity>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
 
   if (!track) {
     return <NoTrackPlayer />;
@@ -575,94 +495,12 @@ const PlayerScreen = () => {
 
           {/* Remove Confirmation Modal */}
           {showRemoveModal && (
-            <Modal
-              transparent
-              visible={showRemoveModal}
-              onRequestClose={() => setShowRemoveModal(false)}
-            >
-              <Pressable
-                style={[
-                  styles.modalOverlay,
-                  { backgroundColor: theme.colors.background + "D9" },
-                ]}
-                onPress={() => setShowRemoveModal(false)}
-              >
-                <View
-                  style={[
-                    styles.confirmModal,
-                    { backgroundColor: theme.colors.surface },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.confirmIconContainer,
-                      { backgroundColor: theme.colors.errorColor + "1A" },
-                    ]}
-                  >
-                    <Ionicons
-                      name="warning"
-                      size={32}
-                      color={theme.colors.errorColor}
-                    />
-                  </View>
-                  <Text
-                    style={[
-                      styles.confirmTitle,
-                      { color: theme.colors.textPrimary },
-                    ]}
-                  >
-                    Remove from Playlist?
-                  </Text>
-                  <Text
-                    style={[
-                      styles.confirmMessage,
-                      { color: theme.colors.textSecondary },
-                    ]}
-                  >
-                    This will remove "{track.title}" from all playlists
-                    containing it.
-                  </Text>
-
-                  <View style={styles.confirmButtons}>
-                    <TouchableOpacity
-                      style={[
-                        styles.confirmButton,
-                        styles.cancelButton,
-                        { backgroundColor: theme.colors.textSecondary + "1A" },
-                      ]}
-                      onPress={() => setShowRemoveModal(false)}
-                    >
-                      <Text
-                        style={[
-                          styles.cancelButtonText,
-                          { color: theme.colors.textSecondary },
-                        ]}
-                      >
-                        Cancel
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[
-                        styles.confirmButton,
-                        styles.removeButton,
-                        { backgroundColor: theme.colors.errorColor },
-                      ]}
-                      onPress={confirmRemoveFromPlaylist}
-                    >
-                      <Text
-                        style={[
-                          styles.removeButtonText,
-                          { color: theme.colors.textPrimary },
-                        ]}
-                      >
-                        Remove
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </Pressable>
-            </Modal>
+            <RemovePlaylistModal
+              confirmRemoveFromPlaylist={confirmRemoveFromPlaylist}
+              showRemoveModal={showRemoveModal}
+              setShowRemoveModal={setShowRemoveModal}
+              theme={theme}
+            />
           )}
 
           {/* Playlist Modal */}
@@ -678,118 +516,15 @@ const PlayerScreen = () => {
       </LinearGradient>
 
       {/* Action Sheet with Queue */}
-      <ActionSheet
+      <QueueActionSheet
         ref={actionSheetRef}
-        containerStyle={{
-          backgroundColor: theme.colors.surface,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-        }}
-        indicatorStyle={{
-          backgroundColor: theme.colors.textSecondary,
-          width: 40,
-          height: 4,
-        }}
-        gestureEnabled={true}
-        statusBarTranslucent
-        drawUnderStatusbar={false}
-        defaultOverlayOpacity={0.3}
-      >
-        <View
-          style={[
-            styles.actionSheetContent,
-            { backgroundColor: theme.colors.surface },
-          ]}
-        >
-          {/* Action Sheet Header */}
-          <View
-            style={[
-              styles.actionSheetHeader,
-              { borderBottomColor: theme.colors.border },
-            ]}
-          >
-            <View>
-              <Text
-                style={[
-                  styles.actionSheetTitle,
-                  { color: theme.colors.textPrimary },
-                ]}
-              >
-                Queue
-              </Text>
-              <Text
-                style={[
-                  styles.actionSheetSubtitle,
-                  { color: theme.colors.textSecondary },
-                ]}
-              >
-                {queue.length} {queue.length === 1 ? "song" : "songs"}
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => actionSheetRef.current?.hide()}
-              style={[
-                styles.actionSheetCloseButton,
-                { backgroundColor: theme.colors.glassBackground },
-              ]}
-            >
-              <Ionicons
-                name="close"
-                size={20}
-                color={theme.colors.textSecondary}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {/* Queue List */}
-          <View style={styles.actionSheetBody}>
-            {queue.length === 0 ? (
-              <View
-                style={[
-                  styles.emptyStateContainer,
-                  { backgroundColor: theme.colors.glassBackground },
-                ]}
-              >
-                <Ionicons
-                  name="musical-notes"
-                  size={48}
-                  color={theme.colors.textSecondary}
-                />
-                <Text
-                  style={[
-                    styles.emptyStateTitle,
-                    { color: theme.colors.textPrimary },
-                  ]}
-                >
-                  Queue is Empty
-                </Text>
-                <Text
-                  style={[
-                    styles.emptyStateSubtitle,
-                    { color: theme.colors.textSecondary },
-                  ]}
-                >
-                  Add songs to see them here
-                </Text>
-              </View>
-            ) : (
-              <FlatList
-                data={queue}
-                keyExtractor={(item, index) => `${item.id}-${index}`}
-                renderItem={({ item, index }) => (
-                  <QueueItem
-                    item={item}
-                    index={index}
-                    isCurrentTrack={index === currentTrackIndex}
-                  />
-                )}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.queueList}
-              />
-            )}
-          </View>
-        </View>
-      </ActionSheet>
+        queue={queue}
+        currentTrackIndex={currentTrackIndex}
+        onClose={() => actionSheetRef.current?.hide()}
+        onPlayItem={handleQueueItemPress}
+        onRemoveItem={handleRemoveFromQueue}
+        theme={theme}
+      />
     </>
   );
 };
@@ -922,172 +657,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginHorizontal: 15,
-  },
-  // Confirmation Modal Styles
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  confirmModal: {
-    borderRadius: 20,
-    width: "85%",
-    maxWidth: 340,
-    padding: 24,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 10,
-  },
-  confirmIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  confirmTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  confirmMessage: {
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 24,
-    lineHeight: 20,
-  },
-  confirmButtons: {
-    flexDirection: "row",
-    width: "100%",
-    justifyContent: "space-between",
-  },
-  confirmButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  cancelButton: {
-    marginRight: 8,
-  },
-  removeButton: {
-    marginLeft: 8,
-  },
-  cancelButtonText: {
-    fontWeight: "600",
-    fontSize: 15,
-  },
-  removeButtonText: {
-    fontWeight: "600",
-    fontSize: 15,
-  },
-  // Action Sheet Styles
-  actionSheetContent: {
-    minHeight: 400,
-    maxHeight: "80%",
-  },
-  actionSheetHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-  },
-  actionSheetTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 2,
-  },
-  actionSheetSubtitle: {
-    fontSize: 13,
-    opacity: 0.8,
-  },
-  actionSheetCloseButton: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 16,
-  },
-  actionSheetBody: {
-    flex: 1,
-  },
-  queueList: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  queueItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginBottom: 4,
-    marginTop: 4,
-  },
-  queueItemImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  queueItemInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  queueItemTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    marginBottom: 2,
-  },
-  queueItemArtist: {
-    fontSize: 13,
-    opacity: 0.8,
-  },
-  queueItemActions: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  nowPlayingIndicator: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-  removeButton: {
-    width: 28,
-    height: 28,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 14,
-  },
-  emptyStateContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 16,
-    padding: 40,
-    margin: 20,
-    minHeight: 200,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyStateSubtitle: {
-    fontSize: 14,
-    textAlign: "center",
-    opacity: 0.7,
   },
 });
 
