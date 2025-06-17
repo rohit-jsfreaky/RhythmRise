@@ -87,7 +87,10 @@ const HomeScreen = () => {
             >
               Featured Today
             </Text>
-            <TouchableOpacity style={styles.featuredCard}>
+            <TouchableOpacity
+              style={styles.featuredCard}
+              onPress={() => navigation.navigate("Trending")}
+            >
               <ImageBackground
                 source={{
                   uri: "https://images.unsplash.com/photo-1511379938547-c1f69419868d",
@@ -288,10 +291,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     marginHorizontal: 8,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
   },
   quickActionIcon: {
     width: 48,

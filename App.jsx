@@ -14,6 +14,7 @@ import PlayerScreen from "./src/Screens/Player/PlayerScreen";
 import MiniPlayer from "./src/Components/MiniPlayer";
 import { ThemeProvider, useTheme } from "./src/contexts/ThemeContext";
 import Playlist from "./src/Screens/Playlist/Playlist";
+import TrendingSongs from "./src/Screens/TrendingSongs/TrendingSongs";
 
 const Stack = createNativeStackNavigator();
 
@@ -41,8 +42,12 @@ function AppContent() {
 
   if (isLoading || !playSetup) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <Text style={{ color: theme.colors.textPrimary }}>Setting up player...</Text>
+      <View
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+      >
+        <Text style={{ color: theme.colors.textPrimary }}>
+          Setting up player...
+        </Text>
       </View>
     );
   }
@@ -75,6 +80,12 @@ function AppContent() {
           <Stack.Screen
             name="Playlist"
             component={Playlist}
+            options={{ headerShown: false }}
+          />
+
+          <Stack.Screen
+            name="Trending"
+            component={TrendingSongs}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

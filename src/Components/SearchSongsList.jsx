@@ -17,11 +17,13 @@ const SearchSongsList = ({
   searchResults,
   onSongPress,
   currentTrack,
+  scrollEnabled = true,
 }) => {
   const { theme } = useTheme();
 
   return (
     <FlatList
+    scrollEnabled={scrollEnabled}
       refreshControl={
         searchResults.length === 0 ? (
           <RefreshControl

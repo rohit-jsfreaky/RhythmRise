@@ -1,9 +1,4 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-} from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -15,6 +10,7 @@ import SongsList from "../../Components/SongsList";
 import PlayListModal from "../../Components/PlayListModal";
 import { useTheme } from "../../contexts/ThemeContext";
 import { removeFavorite, toggleFavorite } from "../../utils/Favorite";
+import { playAllSongs } from "../../utils/songs";
 
 const Playlist = () => {
   const [favorites, setFavorites] = useState([]);
@@ -44,13 +40,6 @@ const Playlist = () => {
     };
     loadFavorites();
   }, []);
-
-  const getSecondsFromDuration = (timeStr) => {
-    if (!timeStr) return 0;
-    const [mins, secs] = timeStr.split(":").map(Number);
-    return mins * 60 + secs;
-  };
-
   const playPlaylistSong = async (song) => {
     await playAllSongs(song, navigation, songs);
   };
@@ -70,7 +59,7 @@ const Playlist = () => {
     await removeFavorite(song, title, setSongs);
   };
 
-  const playAllSongs = async () => {
+  const handleplayAllSongs = async () => {
     if (songs.length === 0) return;
 
     await playAllSongs(null, navigation, songs);
@@ -163,7 +152,7 @@ const Playlist = () => {
                     shadowColor: theme.colors.shadowColor,
                   },
                 ]}
-                onPress={playAllSongs}
+                onPress={handleplayAllSongs}
                 activeOpacity={0.8}
               >
                 <LinearGradient
