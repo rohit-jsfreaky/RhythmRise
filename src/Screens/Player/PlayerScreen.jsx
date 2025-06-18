@@ -28,6 +28,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../../contexts/ThemeContext";
 import RemovePlaylistModal from "../../Components/RemovePlaylistModal";
 import QueueActionSheet from "../../Components/QueueActionSheet";
+import { useQueue } from "../../contexts/PlayerQueueContext";
 
 const { width } = Dimensions.get("window");
 const ARTWORK_SIZE = width * 0.75;
@@ -49,6 +50,7 @@ const PlayerScreen = () => {
   const { state } = playbackState;
   const navigation = useNavigation();
   const { theme } = useTheme();
+  const { queue: contextQueue, isLoadingRelated } = useQueue();
 
   // ActionSheet ref
   const actionSheetRef = useRef(null);
