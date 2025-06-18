@@ -26,18 +26,33 @@ const NoTrackPlayer = () => {
             onPress={() => navigation.navigate("Home")}
             style={styles.headerButton}
           >
-            <Ionicons name="arrow-back" size={28} color={theme.colors.textPrimary} />
+            <Ionicons
+              name="arrow-back"
+              size={28}
+              color={theme.colors.textPrimary}
+            />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.colors.textPrimary }]}>
+          <Text
+            style={[styles.headerTitle, { color: theme.colors.textPrimary }]}
+          >
             Now Playing
           </Text>
           <TouchableOpacity style={styles.headerButton}>
-            <Ionicons name="ellipsis-vertical" size={24} color={theme.colors.textPrimary} />
+            <Ionicons
+              name="ellipsis-vertical"
+              size={24}
+              color={theme.colors.textPrimary}
+            />
           </TouchableOpacity>
         </View>
 
         <View style={styles.emptyStateContainer}>
-          <View style={[styles.artworkShadow, { shadowColor: theme.colors.shadowColor }]}>
+          <View
+            style={[
+              styles.artworkShadow,
+              { shadowColor: theme.colors.shadowColor },
+            ]}
+          >
             <LinearGradient
               colors={[theme.colors.accent, theme.colors.primary + "80"]} // 50% opacity
               style={[styles.artwork, styles.emptyArtwork]}
@@ -50,10 +65,17 @@ const NoTrackPlayer = () => {
             </LinearGradient>
           </View>
 
-          <Text style={[styles.emptyTitle, { color: theme.colors.textPrimary }]}>
+          <Text
+            style={[styles.emptyTitle, { color: theme.colors.textPrimary }]}
+          >
             No Track Playing
           </Text>
-          <Text style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}>
+          <Text
+            style={[
+              styles.emptySubtitle,
+              { color: theme.colors.textSecondary },
+            ]}
+          >
             Play a song to see it here
           </Text>
 
@@ -106,10 +128,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   artworkShadow: {
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 10,
     borderRadius: 24,
   },
   emptyTitle: {

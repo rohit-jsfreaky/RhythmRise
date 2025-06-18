@@ -14,24 +14,20 @@ import { Ionicons } from "@expo/vector-icons";
 import TopTitle from "../../Components/TopTitle";
 import SearchBar from "../../Components/SearchBar";
 import SongsListSkeletonView from "../../Components/SongsListSkeletonView";
-import TrackPlayer from "react-native-track-player";
 import * as SecureStore from "expo-secure-store";
 import SearchQuery from "../../Components/SearchQuery";
 import SearchSongsList from "../../Components/SearchSongsList";
 import { useTheme } from "../../contexts/ThemeContext";
-import { apiBaseUrl } from "../../utils/apiAddress";
+import {
+  handleFetchSognsYoutube,
+  handleFetchSongsJioSavan,
+  playSong,
+} from "../../utils/songs";
 
-export const getBestQualityUrl = (downloadUrls) => {
-  const qualityPriority = ["320kbps", "160kbps", "96kbps", "48kbps", "12kbps"];
-
-  for (const quality of qualityPriority) {
-    const found = downloadUrls.find((item) => item.quality === quality);
-    if (found) return found.url;
-  }
-
-  // Fallback to first available URL
-  return downloadUrls[0]?.url || "";
-};
+import TrackPlayer, {
+  useTrackPlayerEvents,
+  Event,
+} from "react-native-track-player";
 
 const SearchScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,7 +35,6 @@ const SearchScreen = () => {
   const [jioSavanResults, setJioSavanResults] = useState([]);
   const [isLoadingYoutube, setIsLoadingYoutube] = useState(false);
   const [isLoadingJioSavan, setIsLoadingJioSavan] = useState(false);
-  const [currentTrack, setCurrentTrack] = useState(null);
   const [activeTab, setActiveTab] = useState("youtube"); // 'youtube' or 'jiosavan'
   const route = useRoute();
   const { search } = route.params || {};
@@ -57,6 +52,7 @@ const SearchScreen = () => {
   useEffect(() => {
     if (search) {
       console.log("Search Query:", search);
+      setSearchQuery(search);
       fetchSongs(search);
     }
   }, [search]);
@@ -81,62 +77,20 @@ const SearchScreen = () => {
 
   // Fetch YouTube songs
   const fetchYoutubeSongs = async (search) => {
-    try {
-      setIsLoadingYoutube(true);
-      const response = await fetch(
-        `${apiBaseUrl}search-songs?q=${encodeURIComponent(search)}`
-      );
-      if (!response.ok) {
-        throw new Error("YouTube search failed");
-      }
-      const data = await response.json();
-      setYoutubeResults(data);
-    } catch (error) {
-      console.log("Error fetching YouTube songs:", error);
-      setYoutubeResults([]);
-    } finally {
-      setIsLoadingYoutube(false);
-    }
+    await handleFetchSognsYoutube(
+      search,
+      setIsLoadingYoutube,
+      setYoutubeResults
+    );
   };
 
   // Fetch JioSavan songs
   const fetchJioSavanSongs = async (search) => {
-    try {
-      setIsLoadingJioSavan(true);
-      const response = await fetch(
-        `${apiBaseUrl}search-songs-jio-savan?q=${encodeURIComponent(search)}`
-      );
-      if (!response.ok) {
-        throw new Error("JioSavan search failed");
-      }
-      const data = await response.json();
-
-      // Transform JioSavan data to match our format
-      const transformedData = data.data.map((song) => ({
-        id: song.id,
-        title: song.title,
-        uploader: song.author || "Unknown Artist",
-        artist: song.author || "Unknown Artist",
-        thumbnail: song.thumbnail,
-        duration: formatDuration(song.duration),
-        url: song.id, // Use ID as identifier
-        downloadUrls: song.downloadUrls,
-        source: "jiosavan",
-      }));
-
-      setJioSavanResults(transformedData);
-    } catch (error) {
-      console.log("Error fetching JioSavan songs:", error);
-      setJioSavanResults([]);
-    } finally {
-      setIsLoadingJioSavan(false);
-    }
-  };
-
-  const formatDuration = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? "0" + secs : secs}`;
+    await handleFetchSongsJioSavan(
+      search,
+      setIsLoadingJioSavan,
+      setJioSavanResults
+    );
   };
 
   const handleClear = () => {
@@ -149,76 +103,14 @@ const SearchScreen = () => {
     if (!searchQuery.trim()) return;
     fetchSongs(searchQuery);
   };
-
-  const getSecondsFromDuration = (timeStr) => {
-    const [mins, secs] = timeStr.split(":").map(Number);
-    return mins * 60 + secs;
-  };
-
   // Handle YouTube song press
   const onYoutubeSongPress = async (song) => {
-    try {
-      await TrackPlayer.reset();
-      await TrackPlayer.add({
-        id: song.url,
-        url: `https://rhythm-rise-backend.vercel.app/api/music/get-audio-stream?url=${encodeURIComponent(
-          song.url
-        )}&quality=high`,
-        title: song.title,
-        artist: song.uploader,
-        artwork: song.thumbnail,
-        duration: getSecondsFromDuration(song.duration),
-      });
-      await TrackPlayer.play();
-
-      // Store in recently played
-      await storeRecentlyPlayed(song);
-      navigation.navigate("Player");
-    } catch (error) {
-      console.log("Error playing YouTube song:", error);
-    }
+    await playSong(song, navigation);
   };
 
   // Handle JioSavan song press
   const onJioSavanSongPress = async (song) => {
-    try {
-      // Get the best quality URL
-      const bestQualityUrl = getBestQualityUrl(song.downloadUrls);
-
-      await TrackPlayer.reset();
-      await TrackPlayer.add({
-        id: song.id,
-        url: bestQualityUrl,
-        title: song.title,
-        artist: song.uploader,
-        artwork: song.thumbnail,
-        duration: getSecondsFromDuration(song.duration),
-      });
-      await TrackPlayer.play();
-
-      // Store in recently played
-      await storeRecentlyPlayed(song);
-      navigation.navigate("Player");
-    } catch (error) {
-      console.log("Error playing JioSavan song:", error);
-    }
-  };
-
-  // Get best quality URL from JioSavan downloadUrls
-
-  // Store recently played songs
-  const storeRecentlyPlayed = async (song) => {
-    let recent = [];
-    const stored = await SecureStore.getItemAsync("recentlyPlayed");
-    if (stored) recent = JSON.parse(stored);
-
-    // Remove if already exists, then add to front
-    recent = [
-      song,
-      ...recent.filter((s) => s.url !== song.url && s.id !== song.id),
-    ];
-    if (recent.length > 20) recent = recent.slice(0, 20); // Limit to 20
-    await SecureStore.setItemAsync("recentlyPlayed", JSON.stringify(recent));
+    await playSong(song, navigation);
   };
 
   const handleQueryTap = async (query) => {
@@ -246,6 +138,7 @@ const SearchScreen = () => {
 
   return (
     <ScrollView
+      contentContainerStyle={{ flexGrow: 1 }}
       style={[styles.scrollView, { backgroundColor: theme.colors.background }]}
     >
       <LinearGradient
@@ -465,7 +358,6 @@ const SearchScreen = () => {
                     : setJioSavanResults
                 }
                 onSongPress={getCurrentSongPressHandler()}
-                currentTrack={currentTrack}
                 scrollEnabled={false}
               />
             )}
@@ -542,10 +434,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 24,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
   },
   emptyTitle: {
     fontSize: 20,

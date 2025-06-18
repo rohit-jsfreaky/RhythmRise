@@ -4,8 +4,9 @@ import {
   View,
   TouchableOpacity,
   Dimensions,
+  Animated,
 } from "react-native";
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
@@ -22,6 +23,44 @@ const Tab = createMaterialTopTabNavigator();
 // Custom Tab Bar
 function MyTabBar({ state, navigation }) {
   const { theme } = useTheme();
+  const animatedValues = useRef(
+    state.routes.map(() => new Animated.Value(0))
+  ).current;
+  const scaleValues = useRef(
+    state.routes.map(() => new Animated.Value(1))
+  ).current;
+  const opacityValues = useRef(
+    state.routes.map(() => new Animated.Value(0.6))
+  ).current;
+
+  useEffect(() => {
+    // Animate all tabs with faster, smoother animations
+    state.routes.forEach((_, index) => {
+      const isFocused = state.index === index;
+      
+      // Icon scale animation - faster and more responsive
+      Animated.spring(scaleValues[index], {
+        toValue: isFocused ? 1.15 : 1,
+        speed: 20,
+        bounciness: 4,
+        useNativeDriver: true,
+      }).start();
+
+      // Active background animation - quick fade
+      Animated.timing(animatedValues[index], {
+        toValue: isFocused ? 1 : 0,
+        duration: 150,
+        useNativeDriver: false,
+      }).start();
+
+      // Text opacity animation - quick transition
+      Animated.timing(opacityValues[index], {
+        toValue: isFocused ? 1 : 0.5,
+        duration: 120,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [state.index]);
 
   return (
     <View style={styles.tabBarWrapper}>
@@ -57,7 +96,24 @@ function MyTabBar({ state, navigation }) {
                 };
 
                 const onPress = () => {
-                  if (!isFocused) navigation.navigate(route.name);
+                  if (!isFocused) {
+                    // Add quick press animation
+                    Animated.sequence([
+                      Animated.timing(scaleValues[index], {
+                        toValue: 0.95,
+                        duration: 50,
+                        useNativeDriver: true,
+                      }),
+                      Animated.spring(scaleValues[index], {
+                        toValue: 1.15,
+                        speed: 25,
+                        bounciness: 4,
+                        useNativeDriver: true,
+                      }),
+                    ]).start();
+                    
+                    navigation.navigate(route.name);
+                  }
                 };
 
                 return (
@@ -65,48 +121,52 @@ function MyTabBar({ state, navigation }) {
                     key={route.key}
                     accessibilityRole="button"
                     onPress={onPress}
-                    activeOpacity={0.7}
+                    activeOpacity={0.8}
                     style={styles.tabButton}
                   >
-                    <View
+                    <Animated.View
                       style={[
                         styles.iconWrapper,
-                        isFocused && styles.iconActive,
+                        {
+                          transform: [{ scale: scaleValues[index] }],
+                        },
                       ]}
                     >
-                      {isFocused && (
+                      <Animated.View
+                        style={[
+                          styles.activeBackground,
+                          {
+                            opacity: animatedValues[index],
+                            shadowColor: theme.colors.secondary,
+                          },
+                        ]}
+                      >
                         <LinearGradient
                           colors={theme.colors.activeGradient}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 1 }}
-                          style={[
-                            styles.activeBackground,
-                            {
-                              shadowColor: theme.colors.secondary,
-                            },
-                          ]}
+                          style={styles.gradientBackground}
                         />
-                      )}
+                      </Animated.View>
+                      
                       <Ionicons
                         name={icons[route.name]}
                         size={20}
-                        color={
-                          isFocused
-                            ? theme.colors.textPrimary
-                            : theme.colors.textPrimary + "99" // 60% opacity
-                        }
+                        color={theme.colors.textPrimary}
                         style={{ zIndex: 1 }}
                       />
-                    </View>
+                    </Animated.View>
 
-                    <Text
+                    <Animated.Text
                       style={[
                         styles.tabLabel,
-                        { color: theme.colors.textPrimary + "99" }, // 60% opacity
+                        {
+                          color: theme.colors.textPrimary,
+                          opacity: opacityValues[index],
+                        },
                         isFocused && [
                           styles.tabLabelActive,
                           {
-                            color: theme.colors.textPrimary,
                             textShadowColor:
                               theme.colors.secondary + "66", // 40% opacity
                           },
@@ -114,7 +174,7 @@ function MyTabBar({ state, navigation }) {
                       ]}
                     >
                       {route.name}
-                    </Text>
+                    </Animated.Text>
                   </TouchableOpacity>
                 );
               })}
@@ -143,6 +203,23 @@ const Tabs = () => {
       tabBarPosition="bottom"
       swipeEnabled={false}
       tabBar={(props) => <MyTabBar {...props} />}
+      screenOptions={{
+        animationEnabled: true,
+        transitionSpec: {
+          open: {
+            animation: 'timing',
+            config: {
+              duration: 180,
+            },
+          },
+          close: {
+            animation: 'timing',
+            config: {
+              duration: 150,
+            },
+          },
+        },
+      }}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Search" component={SearchScreen} />
@@ -155,6 +232,7 @@ const Tabs = () => {
 
 export default Tabs;
 
+// ...existing code...
 const styles = StyleSheet.create({
   tabBarWrapper: {
     position: "relative",
@@ -236,6 +314,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 6,
+  },
+  gradientBackground: {
+    flex: 1,
+    borderRadius: 24,
   },
   iconActive: {
     transform: [{ scale: 1.05 }],

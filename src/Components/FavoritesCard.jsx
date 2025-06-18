@@ -15,7 +15,7 @@ const FavoritesCard = () => {
         styles.container,
         {
           shadowColor: theme.colors.shadowColor,
-        }
+        },
       ]}
       onPress={() => navigation.navigate("Favorites")}
       activeOpacity={0.8}
@@ -26,16 +26,20 @@ const FavoritesCard = () => {
         end={{ x: 1, y: 1 }}
         style={styles.card}
       >
-        <View style={[
-          styles.iconContainer,
-          { backgroundColor: theme.colors.glassBackground }
-        ]}>
+        <View
+          style={[
+            styles.iconContainer,
+            { backgroundColor: theme.colors.glassBackground },
+          ]}
+        >
           <Ionicons name="heart" size={36} color={theme.colors.errorColor} />
         </View>
         <Text style={[styles.heading, { color: theme.colors.textPrimary }]}>
           Favorites
         </Text>
-        <Text style={[styles.subheading, { color: theme.colors.textSecondary }]}>
+        <Text
+          style={[styles.subheading, { color: theme.colors.textSecondary }]}
+        >
           All your loved tracks
         </Text>
       </LinearGradient>
@@ -49,10 +53,6 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 16,
     overflow: "hidden",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
   },
   card: {
     paddingVertical: 24,

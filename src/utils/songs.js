@@ -1,10 +1,23 @@
 import TrackPlayer from "react-native-track-player";
-import { getBestQualityUrl } from "../Screens/SearchScreen/SearchScreen";
+import * as SecureStore from "expo-secure-store";
+import { apiBaseUrl } from "./apiAddress";
 
-const getSecondsFromDuration = (timeStr) => {
+export const getSecondsFromDuration = (timeStr) => {
   if (!timeStr) return 0;
   const [mins, secs] = timeStr.split(":").map(Number);
   return mins * 60 + secs;
+};
+
+export const getBestQualityUrl = (downloadUrls) => {
+  const qualityPriority = ["320kbps", "160kbps", "96kbps", "48kbps", "12kbps"];
+
+  for (const quality of qualityPriority) {
+    const found = downloadUrls.find((item) => item.quality === quality);
+    if (found) return found.url;
+  }
+
+  // Fallback to first available URL
+  return downloadUrls[0]?.url || "";
 };
 
 export const decideSingleSongUrl = (song) => {
@@ -24,6 +37,20 @@ export const decideSingleSongUrl = (song) => {
   }
 };
 
+const storeRecentlyPlayed = async (song) => {
+  let recent = [];
+  const stored = await SecureStore.getItemAsync("recentlyPlayed");
+  if (stored) recent = JSON.parse(stored);
+
+  // Remove if already exists, then add to front
+  recent = [
+    song,
+    ...recent.filter((s) => s.url !== song.url && s.id !== song.id),
+  ];
+  if (recent.length > 20) recent = recent.slice(0, 20); // Limit to 20
+  await SecureStore.setItemAsync("recentlyPlayed", JSON.stringify(recent));
+};
+
 export const playSong = async (song, navigation) => {
   try {
     await TrackPlayer.reset();
@@ -36,18 +63,14 @@ export const playSong = async (song, navigation) => {
       duration: getSecondsFromDuration(song.duration),
     });
     await TrackPlayer.play();
+    storeRecentlyPlayed(song);
     navigation.navigate("Player");
   } catch (error) {
     console.log("Error playing song:", error);
   }
 };
 
-export const playAllSongs = async (
-  song,
-  navigation,
-  songs,
-  isJioSavan = false
-) => {
+export const playAllSongs = async (song, navigation, songs) => {
   try {
     await TrackPlayer.reset();
     // Add all favorites to queue
@@ -73,5 +96,71 @@ export const playAllSongs = async (
     navigation.replace("Tabs", { screen: "Player" });
   } catch (e) {
     console.log("Error playing favorite:", e);
+  }
+};
+
+export const handleFetchSognsYoutube = async (
+  search,
+  setIsLoadingYoutube,
+  setYoutubeResults
+) => {
+  try {
+    setIsLoadingYoutube(true);
+    const response = await fetch(
+      `${apiBaseUrl}search-songs?q=${encodeURIComponent(search)}`
+    );
+    if (!response.ok) {
+      throw new Error("YouTube search failed");
+    }
+    const data = await response.json();
+    setYoutubeResults(data);
+  } catch (error) {
+    console.log("Error fetching YouTube songs:", error);
+    setYoutubeResults([]);
+  } finally {
+    setIsLoadingYoutube(false);
+  }
+};
+
+const formatDuration = (seconds) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs < 10 ? "0" + secs : secs}`;
+};
+
+export const handleFetchSongsJioSavan = async (
+  search,
+  setIsLoadingJioSavan,
+  setJioSavanResults
+) => {
+  try {
+    setIsLoadingJioSavan(true);
+    const response = await fetch(
+      `${apiBaseUrl}search-songs-jio-savan?q=${encodeURIComponent(search)}`
+    );
+    if (!response.ok) {
+      throw new Error("JioSavan search failed");
+    }
+    const data = await response.json();
+
+    // Transform JioSavan data to match our format
+    const transformedData = data.data.map((song) => ({
+      id: song.id,
+      title: song.title,
+      uploader: song.author || "Unknown Artist",
+      artist: song.author || "Unknown Artist",
+      thumbnail: song.thumbnail,
+      duration: formatDuration(song.duration),
+      url: song.id, // Use ID as identifier
+      downloadUrls: song.downloadUrls,
+      source: "jiosavan",
+    }));
+
+    setJioSavanResults(transformedData);
+  } catch (error) {
+    console.log("Error fetching JioSavan songs:", error);
+    setJioSavanResults([]);
+  } finally {
+    setIsLoadingJioSavan(false);
   }
 };

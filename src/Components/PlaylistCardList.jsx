@@ -39,7 +39,14 @@ const PlaylistCardList = ({
 
   // Generate random icon for each playlist
   const getPlaylistIcon = (title) => {
-    const icons = ["musical-notes", "library", "headset", "radio", "disc", "albums"];
+    const icons = [
+      "musical-notes",
+      "library",
+      "headset",
+      "radio",
+      "disc",
+      "albums",
+    ];
     const index = title.length % icons.length;
     return icons[index];
   };
@@ -71,9 +78,11 @@ const PlaylistCardList = ({
                   styles.card,
                   {
                     shadowColor: theme.colors.shadowColor,
-                  }
+                  },
                 ]}
-                onPress={() => navigation.navigate("Playlist", { title: item.title })}
+                onPress={() =>
+                  navigation.navigate("Playlist", { title: item.title })
+                }
                 activeOpacity={0.9}
               >
                 <LinearGradient
@@ -83,32 +92,40 @@ const PlaylistCardList = ({
                   style={styles.cardGradient}
                 >
                   {/* Modern glassmorphism overlay */}
-                  <View style={[
-                    styles.glassOverlay,
-                    { backgroundColor: theme.colors.glassBackground }
-                  ]}>
+                  <View
+                    style={[
+                      styles.glassOverlay,
+                      { backgroundColor: theme.colors.glassBackground },
+                    ]}
+                  >
                     {/* Icon Section */}
                     <View style={styles.cardHeader}>
-                      <View style={[
-                        styles.modernIconContainer,
-                        { backgroundColor: theme.colors.textPrimary + "20" } // 12% opacity
-                      ]}>
-                        <Ionicons 
-                          name={getPlaylistIcon(item.title)} 
-                          size={28} 
-                          color={theme.colors.textPrimary} 
+                      <View
+                        style={[
+                          styles.modernIconContainer,
+                          { backgroundColor: theme.colors.textPrimary + "20" }, // 12% opacity
+                        ]}
+                      >
+                        <Ionicons
+                          name={getPlaylistIcon(item.title)}
+                          size={28}
+                          color={theme.colors.textPrimary}
                         />
                       </View>
-                      
+
                       {/* Song count badge */}
-                      <View style={[
-                        styles.songCountBadge,
-                        { backgroundColor: theme.colors.primary + "33" } // 20% opacity
-                      ]}>
-                        <Text style={[
-                          styles.songCountText,
-                          { color: theme.colors.textPrimary }
-                        ]}>
+                      <View
+                        style={[
+                          styles.songCountBadge,
+                          { backgroundColor: theme.colors.primary + "33" }, // 20% opacity
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.songCountText,
+                            { color: theme.colors.textPrimary },
+                          ]}
+                        >
                           {item.songs.length}
                         </Text>
                       </View>
@@ -116,27 +133,39 @@ const PlaylistCardList = ({
 
                     {/* Content Section */}
                     <View style={styles.cardContent}>
-                      <Text style={[
-                        styles.playlistTitle,
-                        { color: theme.colors.textPrimary }
-                      ]} numberOfLines={2}>
+                      <Text
+                        style={[
+                          styles.playlistTitle,
+                          { color: theme.colors.textPrimary },
+                        ]}
+                        numberOfLines={2}
+                      >
                         {item.title}
                       </Text>
-                      <Text style={[
-                        styles.playlistSubtitle,
-                        { color: theme.colors.textSecondary }
-                      ]}>
-                        {item.songs.length} {item.songs.length === 1 ? 'song' : 'songs'}
+                      <Text
+                        style={[
+                          styles.playlistSubtitle,
+                          { color: theme.colors.textSecondary },
+                        ]}
+                      >
+                        {item.songs.length}{" "}
+                        {item.songs.length === 1 ? "song" : "songs"}
                       </Text>
                     </View>
 
                     {/* Play button overlay on hover/press */}
                     <View style={styles.playOverlay}>
-                      <View style={[
-                        styles.playButton,
-                        { backgroundColor: theme.colors.primary + "E6" } // 90% opacity
-                      ]}>
-                        <Ionicons name="play" size={20} color={theme.colors.textPrimary} />
+                      <View
+                        style={[
+                          styles.playButton,
+                          { backgroundColor: theme.colors.primary + "E6" }, // 90% opacity
+                        ]}
+                      >
+                        <Ionicons
+                          name="play"
+                          size={20}
+                          color={theme.colors.textPrimary}
+                        />
                       </View>
                     </View>
                   </View>
@@ -151,11 +180,15 @@ const PlaylistCardList = ({
                 }}
                 style={[
                   styles.menuButton,
-                  { backgroundColor: theme.colors.background + "CC" } // 80% opacity
+                  { backgroundColor: theme.colors.background + "CC" }, // 80% opacity
                 ]}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Ionicons name="ellipsis-vertical" size={18} color={theme.colors.textPrimary} />
+                <Ionicons
+                  name="ellipsis-vertical"
+                  size={18}
+                  color={theme.colors.textPrimary}
+                />
               </TouchableOpacity>
 
               {/* Context Menu */}
@@ -167,7 +200,7 @@ const PlaylistCardList = ({
                     style={styles.menuBackdrop}
                     onPress={() => setMenuOpenFor(null)}
                   />
-                  
+
                   <Animated.View
                     style={[
                       styles.menu,
@@ -203,19 +236,35 @@ const PlaylistCardList = ({
                       style={styles.menuItem}
                       activeOpacity={0.7}
                     >
-                      <View style={[
-                        styles.menuIconBg,
-                        { backgroundColor: theme.colors.primary + "33" } // 20% opacity
-                      ]}>
-                        <Ionicons name="create-outline" size={16} color={theme.colors.primary} />
+                      <View
+                        style={[
+                          styles.menuIconBg,
+                          { backgroundColor: theme.colors.primary + "33" }, // 20% opacity
+                        ]}
+                      >
+                        <Ionicons
+                          name="create-outline"
+                          size={16}
+                          color={theme.colors.primary}
+                        />
                       </View>
-                      <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>
+                      <Text
+                        style={[
+                          styles.menuText,
+                          { color: theme.colors.textPrimary },
+                        ]}
+                      >
                         Rename
                       </Text>
                     </TouchableOpacity>
-                    
-                    <View style={[styles.menuDivider, { backgroundColor: theme.colors.border }]} />
-                    
+
+                    <View
+                      style={[
+                        styles.menuDivider,
+                        { backgroundColor: theme.colors.border },
+                      ]}
+                    />
+
                     <TouchableOpacity
                       onPress={() => {
                         setPlaylistToDelete(item.title);
@@ -225,13 +274,24 @@ const PlaylistCardList = ({
                       style={styles.menuItem}
                       activeOpacity={0.7}
                     >
-                      <View style={[
-                        styles.menuIconBg,
-                        { backgroundColor: theme.colors.errorColor + "33" } // 20% opacity
-                      ]}>
-                        <Ionicons name="trash-outline" size={16} color={theme.colors.errorColor} />
+                      <View
+                        style={[
+                          styles.menuIconBg,
+                          { backgroundColor: theme.colors.errorColor + "33" }, // 20% opacity
+                        ]}
+                      >
+                        <Ionicons
+                          name="trash-outline"
+                          size={16}
+                          color={theme.colors.errorColor}
+                        />
                       </View>
-                      <Text style={[styles.menuText, { color: theme.colors.errorColor }]}>
+                      <Text
+                        style={[
+                          styles.menuText,
+                          { color: theme.colors.errorColor },
+                        ]}
+                      >
                         Delete
                       </Text>
                     </TouchableOpacity>
@@ -250,7 +310,7 @@ export default PlaylistCardList;
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: 8,
   },
   column: {
@@ -258,16 +318,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   cardWrapper: {
-    position: 'relative',
+    position: "relative",
     marginBottom: 20,
   },
   card: {
     borderRadius: 20,
-    overflow: 'hidden',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
+    overflow: "hidden",
     height: 180,
   },
   cardGradient: {
@@ -279,12 +335,12 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 12,
   },
   modernIconContainer: {
@@ -302,17 +358,17 @@ const styles = StyleSheet.create({
     minWidth: 24,
     height: 24,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 8,
   },
   songCountText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   cardContent: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   playlistTitle: {
     fontSize: 16,
@@ -325,7 +381,7 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   playOverlay: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 16,
     right: 16,
     opacity: 0.9,
@@ -334,8 +390,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -356,7 +412,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   menuBackdrop: {
-    position: 'absolute',
+    position: "absolute",
     top: -1000,
     left: -1000,
     right: -1000,
@@ -387,8 +443,8 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   menuDivider: {
@@ -397,6 +453,6 @@ const styles = StyleSheet.create({
   },
   menuText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });

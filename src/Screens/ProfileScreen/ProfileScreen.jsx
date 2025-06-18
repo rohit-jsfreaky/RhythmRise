@@ -66,7 +66,7 @@ const ProfileScreen = () => {
 
   // Determine status bar style based on theme
   const getStatusBarStyle = () => {
-    return currentTheme === 'light' ? 'dark' : 'light';
+    return currentTheme === "light" ? "dark" : "light";
   };
 
   return (
@@ -91,7 +91,7 @@ const ProfileScreen = () => {
             <View
               style={[
                 styles.section,
-                { 
+                {
                   backgroundColor: theme.colors.glassBackground,
                   shadowColor: theme.colors.shadowColor,
                 },
@@ -107,7 +107,12 @@ const ProfileScreen = () => {
                   <Text
                     style={[
                       styles.avatarText,
-                      { color: currentTheme === 'light' ? '#FFFFFF' : theme.colors.textPrimary },
+                      {
+                        color:
+                          currentTheme === "light"
+                            ? "#FFFFFF"
+                            : theme.colors.textPrimary,
+                      },
                     ]}
                   >
                     U
@@ -157,7 +162,7 @@ const ProfileScreen = () => {
             <View
               style={[
                 styles.section,
-                { 
+                {
                   backgroundColor: theme.colors.glassBackground,
                   shadowColor: theme.colors.shadowColor,
                 },
@@ -243,7 +248,7 @@ const ProfileScreen = () => {
             <View
               style={[
                 styles.section,
-                { 
+                {
                   backgroundColor: theme.colors.glassBackground,
                   shadowColor: theme.colors.shadowColor,
                 },
@@ -371,10 +376,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   sectionHeader: {
     marginTop: 8,

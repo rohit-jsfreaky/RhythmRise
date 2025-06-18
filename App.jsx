@@ -15,6 +15,7 @@ import MiniPlayer from "./src/Components/MiniPlayer";
 import { ThemeProvider, useTheme } from "./src/contexts/ThemeContext";
 import Playlist from "./src/Screens/Playlist/Playlist";
 import TrendingSongs from "./src/Screens/TrendingSongs/TrendingSongs";
+import { PlayerQueueProvider } from "./src/contexts/PlayerQueueContext";
 
 const Stack = createNativeStackNavigator();
 
@@ -54,44 +55,46 @@ function AppContent() {
 
   return (
     <MenuProvider>
-      <NavigationContainer>
-        <StatusBar style="light" backgroundColor={theme.colors.background} />
-        <Stack.Navigator initialRouteName="Tabs">
-          <Stack.Screen
-            name="Tabs"
-            component={Tabs}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Favorites"
-            component={Favorites}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="ArtistSongs"
-            component={ArtistSongs}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Player"
-            component={PlayerScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Playlist"
-            component={Playlist}
-            options={{ headerShown: false }}
-          />
+      <PlayerQueueProvider>
+        <NavigationContainer>
+          <StatusBar style="light" backgroundColor={theme.colors.background} />
+          <Stack.Navigator initialRouteName="Tabs">
+            <Stack.Screen
+              name="Tabs"
+              component={Tabs}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Favorites"
+              component={Favorites}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="ArtistSongs"
+              component={ArtistSongs}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Player"
+              component={PlayerScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Playlist"
+              component={Playlist}
+              options={{ headerShown: false }}
+            />
 
-          <Stack.Screen
-            name="Trending"
-            component={TrendingSongs}
-            options={{ headerShown: false }}
-          />
-        </Stack.Navigator>
+            <Stack.Screen
+              name="Trending"
+              component={TrendingSongs}
+              options={{ headerShown: false }}
+            />
+          </Stack.Navigator>
 
-        {/* {isTrackActive && <MiniPlayer />} */}
-      </NavigationContainer>
+          {/* {isTrackActive && <MiniPlayer />} */}
+        </NavigationContainer>
+      </PlayerQueueProvider>
     </MenuProvider>
   );
 }

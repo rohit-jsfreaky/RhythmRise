@@ -29,6 +29,7 @@ const HomeScreen = () => {
     navigation.navigate("Search", {
       search: searchQuery,
     });
+    setSearchQuery("");
   };
 
   useEffect(() => {
@@ -60,6 +61,7 @@ const HomeScreen = () => {
 
   return (
     <ScrollView
+      contentContainerStyle={{ flexGrow: 1 }}
       style={[styles.scrollView, { backgroundColor: theme.colors.background }]}
     >
       <LinearGradient
