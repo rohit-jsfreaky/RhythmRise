@@ -28,6 +28,7 @@ import TrackPlayer, {
   useTrackPlayerEvents,
   Event,
 } from "react-native-track-player";
+import { mmkvStorage } from "../../utils/Favorite";
 
 const SearchScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -44,7 +45,7 @@ const SearchScreen = () => {
 
   useEffect(() => {
     (async () => {
-      const stored = await SecureStore.getItemAsync("searchHistory");
+      const stored = mmkvStorage.getString("searchHistory");
       if (stored) setSearchHistory(JSON.parse(stored));
     })();
   }, []);
@@ -65,7 +66,8 @@ const SearchScreen = () => {
     let updated = [search, ...searchHistory.filter((q) => q !== search)];
     if (updated.length > 10) updated = updated.slice(0, 10);
     setSearchHistory(updated);
-    await SecureStore.setItemAsync("searchHistory", JSON.stringify(updated));
+    mmkvStorage.set("searchHistory", JSON.stringify(updated));
+    // await SecureStore.setItemAsync("searchHistory", JSON.stringify(updated));
 
     // Start both API calls in parallel
     const youtubePromise = fetchYoutubeSongs(search);

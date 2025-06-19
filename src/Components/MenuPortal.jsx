@@ -87,7 +87,7 @@ const MenuPortal = ({
             }}
             style={[
               styles.portalMenuItem,
-              { borderBottomColor: theme.colors.border },
+              { borderBottomColor: theme.colors.border, borderBottomWidth: 1 },
             ]}
             activeOpacity={0.7}
           >
@@ -170,7 +170,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    borderBottomWidth: 1,
   },
   portalMenuIconContainer: {
     width: 32,

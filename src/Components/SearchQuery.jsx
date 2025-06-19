@@ -3,6 +3,7 @@ import React from "react";
 import * as SecureStore from "expo-secure-store";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../contexts/ThemeContext";
+import { mmkvStorage } from "../utils/Favorite";
 
 const SearchQuery = ({ searchHistory, setSearchHistory, handleQueryTap }) => {
   const { theme } = useTheme();
@@ -10,11 +11,13 @@ const SearchQuery = ({ searchHistory, setSearchHistory, handleQueryTap }) => {
   const handleRemoveQuery = async (query) => {
     const updated = searchHistory.filter((q) => q !== query);
     setSearchHistory(updated);
+    mmkvStorage.set("searchHistory", JSON.stringify(updated));
     await SecureStore.setItemAsync("searchHistory", JSON.stringify(updated));
   };
 
   const handleClearAll = async () => {
     setSearchHistory([]);
+    mmkvStorage.delete("searchHistory");
     await SecureStore.deleteItemAsync("searchHistory");
   };
 
@@ -26,10 +29,19 @@ const SearchQuery = ({ searchHistory, setSearchHistory, handleQueryTap }) => {
         </Text>
         <TouchableOpacity
           onPress={handleClearAll}
-          style={[styles.clearAllBtn, { backgroundColor: theme.colors.glassBackground }]}
+          style={[
+            styles.clearAllBtn,
+            { backgroundColor: theme.colors.glassBackground },
+          ]}
         >
-          <Ionicons name="trash-outline" size={18} color={theme.colors.textSecondary} />
-          <Text style={[styles.clearAllText, { color: theme.colors.textSecondary }]}>
+          <Ionicons
+            name="trash-outline"
+            size={18}
+            color={theme.colors.textSecondary}
+          />
+          <Text
+            style={[styles.clearAllText, { color: theme.colors.textSecondary }]}
+          >
             Clear All
           </Text>
         </TouchableOpacity>
@@ -38,7 +50,10 @@ const SearchQuery = ({ searchHistory, setSearchHistory, handleQueryTap }) => {
         {searchHistory.map((query) => (
           <View
             key={query}
-            style={[styles.queryRow, { backgroundColor: theme.colors.glassBackground }]}
+            style={[
+              styles.queryRow,
+              { backgroundColor: theme.colors.glassBackground },
+            ]}
           >
             <TouchableOpacity
               style={styles.queryBtn}
@@ -51,7 +66,9 @@ const SearchQuery = ({ searchHistory, setSearchHistory, handleQueryTap }) => {
                 color={theme.colors.secondary}
                 style={{ marginRight: 10 }}
               />
-              <Text style={[styles.queryText, { color: theme.colors.textPrimary }]}>
+              <Text
+                style={[styles.queryText, { color: theme.colors.textPrimary }]}
+              >
                 {query}
               </Text>
             </TouchableOpacity>

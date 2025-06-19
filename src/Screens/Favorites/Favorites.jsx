@@ -6,12 +6,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import TopTitle from "../../Components/TopTitle";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import * as SecureStore from "expo-secure-store";
+
 import PlayListModal from "../../Components/PlayListModal";
 import SongsList from "../../Components/SongsList";
 import { useTheme } from "../../contexts/ThemeContext";
 import { playAllSongs } from "../../utils/songs";
-import { toggleFavorite } from "../../utils/Favorite";
+import { mmkvStorage, toggleFavorite } from "../../utils/Favorite";
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
@@ -22,7 +22,7 @@ const Favorites = () => {
 
   useEffect(() => {
     const loadFavorites = async () => {
-      const stored = await SecureStore.getItemAsync("favorites");
+      const stored = mmkvStorage.getString("favorites");
       if (stored) setFavorites(JSON.parse(stored));
     };
     loadFavorites();

@@ -18,7 +18,7 @@ import PlayListModal from "../../Components/PlayListModal";
 import { useTheme } from "../../contexts/ThemeContext";
 import { apiBaseUrl } from "../../utils/apiAddress";
 import { playAllSongs } from "../../utils/songs";
-import { toggleFavorite, isFavorite } from "../../utils/Favorite";
+import { toggleFavorite, isFavorite, mmkvStorage } from "../../utils/Favorite";
 import * as SecureStore from "expo-secure-store";
 
 const TrendingSongs = () => {
@@ -38,7 +38,7 @@ const TrendingSongs = () => {
 
   const loadFavorites = async () => {
     try {
-      const stored = await SecureStore.getItemAsync("favorites");
+      const stored = mmkvStorage.getString("favorites");
       if (stored) setFavorites(JSON.parse(stored));
     } catch (error) {
       console.log("Error loading favorites:", error);
@@ -139,7 +139,7 @@ const TrendingSongs = () => {
                   <Ionicons
                     name="trending-up"
                     size={24}
-                    color={theme.colors.primary}
+                    color={theme.colors.textPrimary}
                   />
                 </View>
                 <View>

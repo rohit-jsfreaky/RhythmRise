@@ -9,7 +9,11 @@ import { Ionicons } from "@expo/vector-icons";
 import SongsList from "../../Components/SongsList";
 import PlayListModal from "../../Components/PlayListModal";
 import { useTheme } from "../../contexts/ThemeContext";
-import { removeFavorite, toggleFavorite } from "../../utils/Favorite";
+import {
+  mmkvStorage,
+  removeFavorite,
+  toggleFavorite,
+} from "../../utils/Favorite";
 import { playAllSongs } from "../../utils/songs";
 
 const Playlist = () => {
@@ -35,7 +39,7 @@ const Playlist = () => {
 
   useEffect(() => {
     const loadFavorites = async () => {
-      const stored = await SecureStore.getItemAsync("favorites");
+      const stored = mmkvStorage.getString("favorites");
       if (stored) setFavorites(JSON.parse(stored));
     };
     loadFavorites();

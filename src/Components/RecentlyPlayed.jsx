@@ -7,14 +7,14 @@ import {
   View,
   Dimensions,
 } from "react-native";
-import * as SecureStore from "expo-secure-store";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PlayListModal from "./PlayListModal";
 import MenuPortal from "./MenuPortal";
 import { useTheme } from "../contexts/ThemeContext";
 import { isFavorite, toggleFavorite } from "../utils/Favorite";
-
+import { mmkvStorage } from "../utils/Favorite";
+import { useFocusEffect } from "@react-navigation/native";
 const { height: screenHeight, width: screenWidth } = Dimensions.get("window");
 
 const RecentlyPlayed = ({ playRecentSong, columns }) => {
@@ -25,12 +25,16 @@ const RecentlyPlayed = ({ playRecentSong, columns }) => {
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const { theme } = useTheme();
 
-  useEffect(() => {
-    (async () => {
-      const stored = await SecureStore.getItemAsync("favorites");
-      if (stored) setFavorites(JSON.parse(stored));
-    })();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const loadFavorites = () => {
+        const stored = mmkvStorage.getString("favorites");
+        if (stored) setFavorites(JSON.parse(stored));
+      };
+
+      loadFavorites();
+    }, [])
+  );
 
   const handletoggleFavorite = async (song) => {
     await toggleFavorite(song, favorites, setFavorites);

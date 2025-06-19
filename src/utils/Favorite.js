@@ -1,4 +1,7 @@
 import * as SecureStore from "expo-secure-store";
+import { MMKV } from "react-native-mmkv";
+
+export const mmkvStorage = new MMKV();
 
 export const isFavorite = (song, favorites) =>
   favorites.some((fav) => fav.url === song.url);
@@ -11,7 +14,8 @@ export const toggleFavorite = async (song, favorites, setFavorites) => {
     updated = [song, ...favorites.filter((fav) => fav.url !== song.url)];
   }
   setFavorites(updated);
-  await SecureStore.setItemAsync("favorites", JSON.stringify(updated));
+  mmkvStorage.set("favorites", JSON.stringify(updated));
+  // await SecureStore.setItemAsync("favorites", JSON.stringify(updated));
 };
 
 export const removeFavorite = async (song, title, setSongs) => {

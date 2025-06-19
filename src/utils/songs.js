@@ -1,6 +1,8 @@
 import TrackPlayer from "react-native-track-player";
-import * as SecureStore from "expo-secure-store";
 import { apiBaseUrl } from "./apiAddress";
+import { MMKV } from "react-native-mmkv";
+
+const storage = new MMKV();
 
 export const getSecondsFromDuration = (timeStr) => {
   if (!timeStr) return 0;
@@ -11,11 +13,13 @@ export const getSecondsFromDuration = (timeStr) => {
 export const getBestQualityUrl = (downloadUrls) => {
   const qualityPriority = ["320kbps", "160kbps", "96kbps", "48kbps", "12kbps"];
 
-  for (const quality of qualityPriority) {
-    const found = downloadUrls.find((item) => item.quality === quality);
-    if (found) return found.url;
-  }
+  const found = downloadUrls.find(
+    (item) => item.quality === "320" || item.quality === "320kbps"
+  );
+  // console.log("Found 320kbps URL:", found);
+  if (found) return found.url;
 
+  // console.log("returning first url", downloadUrls[0]);
   // Fallback to first available URL
   return downloadUrls[0]?.url || "";
 };
@@ -32,6 +36,7 @@ export const decideSingleSongUrl = (song) => {
     console.log("Using provided song URL:", song.url);
     return song.url;
   } else {
+    // console.log("Using best quality URL from downloadUrls", song.downloadUrls);
     const bestQualityUrl = getBestQualityUrl(song.downloadUrls);
     return bestQualityUrl;
   }
@@ -39,7 +44,8 @@ export const decideSingleSongUrl = (song) => {
 
 const storeRecentlyPlayed = async (song) => {
   let recent = [];
-  const stored = await SecureStore.getItemAsync("recentlyPlayed");
+
+  const stored = storage.getString("recentlyPlayed");
   if (stored) recent = JSON.parse(stored);
 
   // Remove if already exists, then add to front
@@ -47,8 +53,10 @@ const storeRecentlyPlayed = async (song) => {
     song,
     ...recent.filter((s) => s.url !== song.url && s.id !== song.id),
   ];
+
   if (recent.length > 20) recent = recent.slice(0, 20); // Limit to 20
-  await SecureStore.setItemAsync("recentlyPlayed", JSON.stringify(recent));
+
+  storage.set("recentlyPlayed", JSON.stringify(recent));
 };
 
 export const playSong = async (song, navigation) => {

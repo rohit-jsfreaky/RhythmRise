@@ -13,11 +13,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import TopTitle from "../../Components/TopTitle";
 import SearchBar from "../../Components/SearchBar";
 import ArtistCard from "../../Components/ArtistCard";
-import * as SecureStore from "expo-secure-store";
 import { FlatList, TouchableOpacity } from "react-native";
 import RecentlyPlayed from "../../Components/RecentlyPlayed";
 import { useTheme } from "../../contexts/ThemeContext";
 import { playSong } from "../../utils/songs";
+
+import { mmkvStorage } from "../../utils/Favorite";
 
 const HomeScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,7 +35,7 @@ const HomeScreen = () => {
 
   useEffect(() => {
     const loadRecentlyPlayed = async () => {
-      const stored = await SecureStore.getItemAsync("recentlyPlayed");
+      const stored = mmkvStorage.getString("recentlyPlayed");
       if (stored) setRecentlyPlayed(JSON.parse(stored));
     };
 
