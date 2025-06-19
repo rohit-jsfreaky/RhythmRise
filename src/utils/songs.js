@@ -55,7 +55,7 @@ export const playSong = async (song, navigation) => {
   try {
     await TrackPlayer.reset();
     await TrackPlayer.add({
-      id: song.url || song.id,
+      id: song.id,
       url: decideSingleSongUrl(song),
       title: song.title,
       artist: song.uploader || song.artist || "Unknown Artist",
@@ -76,7 +76,7 @@ export const playAllSongs = async (song, navigation, songs) => {
     // Add all favorites to queue
     for (const s of songs) {
       await TrackPlayer.add({
-        id: s.url || s.id,
+        id: s.id,
         url: decideSingleSongUrl(s),
         title: s.title,
         artist: s.uploader || s.artist || "Unknown Artist",

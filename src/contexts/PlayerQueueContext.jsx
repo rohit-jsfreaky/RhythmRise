@@ -35,6 +35,8 @@ const fetchYotubeRelated = async (song) => {
 
 const fetchSavanRelated = async (song) => {
   try {
+
+    console.log("Fetching related songs from JioSaavan for song ID:", song.id);
     const response = await fetch(
       `${apiBaseUrl}related-songs-jio-savan/${song.id}`
     );
@@ -44,9 +46,9 @@ const fetchSavanRelated = async (song) => {
     }
     const data = await response.json();
     console.log("Related songs from Savan: Fetched", data.length, "songs");
-    
+
     // Transform the data to match our format for player consumption
-    const transformedSongs = data.map(song => ({
+    const transformedSongs = data.map((song) => ({
       id: song.id,
       url: song.id, // Use ID as identifier for JioSaavan
       title: song.title,
@@ -55,12 +57,12 @@ const fetchSavanRelated = async (song) => {
       thumbnail: song.thumbnail,
       duration: song.duration,
       downloadUrls: Object.entries(song.downloadUrl).map(([quality, url]) => ({
-        quality: quality.replace('kbps', ''),
-        url
+        quality: quality.replace("kbps", ""),
+        url,
       })),
-      source: "jiosavan"
+      source: "jiosavan",
     }));
-    
+
     return transformedSongs;
   } catch (error) {
     console.log("Error fetching related songs from Savan:", error);
@@ -73,15 +75,15 @@ const addToQueue = async (songs) => {
     console.log("No valid songs to add to queue");
     return;
   }
-  
+
   // Limit to 5 related songs to prevent queue overloading
   const songsToAdd = songs.slice(0, 5);
   console.log(`Adding ${songsToAdd.length} related songs to queue`);
-  
+
   try {
     for (const song of songsToAdd) {
       await TrackPlayer.add({
-        id: song.url || song.id,
+        id: song.id,
         url: decideSingleSongUrl(song),
         title: song.title,
         artist: song.uploader || song.artist || "Unknown Artist",
@@ -108,7 +110,7 @@ export const PlayerQueueProvider = ({ children }) => {
         console.log("Error loading initial queue:", error);
       }
     };
-    
+
     loadInitialQueue();
 
     const onTrackChange = TrackPlayer.addEventListener(
@@ -127,7 +129,12 @@ export const PlayerQueueProvider = ({ children }) => {
           if (remaining <= 2) {
             const activeTrack = currentQueue[currentIndex];
             const relatedApiMode = decideRelatedApiMode(activeTrack);
-            console.log("Finding related songs for:", activeTrack.title, "via", relatedApiMode);
+            console.log(
+              "Finding related songs for:",
+              activeTrack.title,
+              "via",
+              relatedApiMode
+            );
 
             setIsLoadingRelated(true);
             try {
@@ -137,7 +144,7 @@ export const PlayerQueueProvider = ({ children }) => {
                 console.log("Fetching JioSaavan related songs");
                 const relatedSongs = await fetchSavanRelated(activeTrack);
                 await addToQueue(relatedSongs);
-                
+
                 // Update queue state after adding songs
                 const updatedQueue = await TrackPlayer.getQueue();
                 console.log("Updated queue length:", updatedQueue.length);
