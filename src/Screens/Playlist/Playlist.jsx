@@ -28,7 +28,8 @@ const Playlist = () => {
 
   useEffect(() => {
     (async () => {
-      const stored = await SecureStore.getItemAsync("playlists");
+      const stored = mmkvStorage.getString("playlists");
+      // const stored = await SecureStore.getItemAsync("playlists");
       if (stored) {
         const playlists = JSON.parse(stored);
         const playlist = playlists.find((p) => p.title === title);

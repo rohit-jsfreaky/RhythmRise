@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../contexts/ThemeContext";
 import { addToPlayList } from "../utils/playlist";
+import { mmkvStorage } from "../utils/Favorite";
 
 const PlayListModal = ({
   showModal,
@@ -35,7 +36,8 @@ const PlayListModal = ({
 
   useEffect(() => {
     (async () => {
-      const stored = await SecureStore.getItemAsync("playlists");
+      const stored = mmkvStorage.getString("playlists");
+      // const stored = await SecureStore.getItemAsync("playlists");
       if (stored) setPlaylists(JSON.parse(stored));
     })();
   }, []);

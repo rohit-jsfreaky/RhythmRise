@@ -1,6 +1,8 @@
 import * as SecureStore from "expo-secure-store";
 import { ToastAndroid } from "react-native";
 
+import { mmkvStorage } from "./Favorite";
+
 export const removeFromPlayList = async () => {};
 
 export const addToPlayList = async (
@@ -9,7 +11,8 @@ export const addToPlayList = async (
   setShowModal,
   setSelectedSong
 ) => {
-  const stored = await SecureStore.getItemAsync("playlists");
+  const stored = mmkvStorage.getString("playlists");
+  // const stored = await SecureStore.getItemAsync("playlists");
   let playlistsArr = stored ? JSON.parse(stored) : [];
   playlistsArr = playlistsArr.map((pl) =>
     pl.title === playlistTitle
@@ -22,7 +25,8 @@ export const addToPlayList = async (
         }
       : pl
   );
-  await SecureStore.setItemAsync("playlists", JSON.stringify(playlistsArr));
+  mmkvStorage.set("playlists", JSON.stringify(playlistsArr));
+  // await SecureStore.setItemAsync("playlists", JSON.stringify(playlistsArr));
   setShowModal(false);
   setSelectedSong(null);
   ToastAndroid.show(`Added to playlist "${playlistTitle}"`, ToastAndroid.SHORT);
@@ -37,7 +41,8 @@ export const createPlaylist = async (
   if (!newTitle.trim()) return;
   const updated = [{ title: newTitle, songs: [] }, ...playlists];
   setPlaylists(updated);
-  await SecureStore.setItemAsync("playlists", JSON.stringify(updated));
+  mmkvStorage.set("playlists", JSON.stringify(updated));
+  // await SecureStore.setItemAsync("playlists", JSON.stringify(updated));
   setNewTitle("");
 };
 
@@ -50,7 +55,8 @@ export const deletePlaylist = async (
 ) => {
   const updated = playlists.filter((pl) => pl.title !== playlistToDelete);
   setPlaylists(updated);
-  await SecureStore.setItemAsync("playlists", JSON.stringify(updated));
+  mmkvStorage.set("playlists", JSON.stringify(updated));
+  // await SecureStore.setItemAsync("playlists", JSON.stringify(updated));
   setShowDeleteModal(false);
   setPlaylistToDelete(null);
 };

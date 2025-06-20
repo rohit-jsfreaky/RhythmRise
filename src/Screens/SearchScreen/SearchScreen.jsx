@@ -24,10 +24,6 @@ import {
   playSong,
 } from "../../utils/songs";
 
-import TrackPlayer, {
-  useTrackPlayerEvents,
-  Event,
-} from "react-native-track-player";
 import { mmkvStorage } from "../../utils/Favorite";
 
 const SearchScreen = () => {
@@ -285,7 +281,7 @@ const SearchScreen = () => {
                     <Ionicons
                       name="search"
                       size={32}
-                      color={theme.colors.primary}
+                      color={theme.colors.textPrimary}
                     />
                   </LinearGradient>
                   <Text

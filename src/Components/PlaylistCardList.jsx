@@ -245,7 +245,7 @@ const PlaylistCardList = ({
                         <Ionicons
                           name="create-outline"
                           size={16}
-                          color={theme.colors.primary}
+                          color={theme.colors.textPrimary}
                         />
                       </View>
                       <Text

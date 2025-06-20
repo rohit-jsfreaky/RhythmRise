@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,8 @@ import DeletePlaylistModal from "../../Components/DeletePlaylistModal";
 import RenamePlaylistModal from "../../Components/RenamePlaylistModal";
 import { useTheme } from "../../contexts/ThemeContext";
 import { createPlaylist, deletePlaylist } from "../../utils/playlist";
+import { mmkvStorage } from "../../utils/Favorite";
+import { useFocusEffect } from "@react-navigation/native";
 
 const LibraryScreen = () => {
   const [playlists, setPlaylists] = useState([]);
@@ -30,12 +32,14 @@ const LibraryScreen = () => {
   const [menuOpenFor, setMenuOpenFor] = useState(null);
   const { theme } = useTheme();
 
-  useEffect(() => {
-    (async () => {
-      const stored = await SecureStore.getItemAsync("playlists");
-      if (stored) setPlaylists(JSON.parse(stored));
-    })();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const stored = mmkvStorage.getString("playlists");
+      if (stored) {
+        setPlaylists(JSON.parse(stored));
+      }
+    }, [])
+  );
 
   const handlecreatePlaylist = async () => {
     await createPlaylist(newTitle, setPlaylists, setNewTitle, playlists);
