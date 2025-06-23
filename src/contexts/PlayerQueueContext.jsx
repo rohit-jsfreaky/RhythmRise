@@ -35,7 +35,6 @@ const fetchYotubeRelated = async (song) => {
 
 const fetchSavanRelated = async (song) => {
   try {
-
     console.log("Fetching related songs from JioSaavan for song ID:", song.id);
     const response = await fetch(
       `${apiBaseUrl}related-songs-jio-savan/${song.id}`
@@ -77,11 +76,16 @@ const addToQueue = async (songs) => {
   }
 
   // Limit to 5 related songs to prevent queue overloading
-  const songsToAdd = songs.slice(0, 5);
+  const queue = await TrackPlayer.getQueue();
+  const existingIds = new Set(queue.map((song) => song.id));
+
+  console.log("Existing queue IDs:", existingIds);
+  const songsToAdd = songs.filter((song) => !existingIds.has(song.id));
+
   console.log(`Adding ${songsToAdd.length} related songs to queue`);
 
   try {
-    for (const song of songsToAdd) {
+    for (const song of songsToAdd.slice(0, 5)) {
       await TrackPlayer.add({
         id: song.id,
         url: decideSingleSongUrl(song),

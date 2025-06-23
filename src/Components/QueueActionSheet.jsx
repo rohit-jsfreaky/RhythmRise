@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, memo, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,171 +11,207 @@ import ActionSheet, { FlatList } from "react-native-actions-sheet";
 import QueueItem from "./QueueItem";
 import { useQueue } from "../contexts/PlayerQueueContext";
 
-const QueueActionSheet = forwardRef(
-  (
-    {
-      theme,
-      queue,
-      currentTrackIndex,
-      handleQueueItemPress,
-      handleRemoveFromQueue,
-      onClose,
-    },
-    ref
-  ) => {
-    const { isLoadingRelated } = useQueue();
+const QueueActionSheet = memo(
+  forwardRef(
+    (
+      {
+        theme,
+        queue,
+        currentTrackIndex,
+        handleQueueItemPress,
+        handleRemoveFromQueue,
+        onClose,
+      },
+      ref
+    ) => {
+      const { isLoadingRelated } = useQueue();
 
-    return (
-      <ActionSheet
-        ref={ref}
-        containerStyle={{
-          backgroundColor: theme.colors.surface,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-        }}
-        indicatorStyle={{
-          backgroundColor: theme.colors.textSecondary,
-          width: 40,
-          height: 4,
-        }}
-        gestureEnabled={true}
-        statusBarTranslucent
-        drawUnderStatusbar={false}
-        defaultOverlayOpacity={0.3}
-        onClose={onClose}
-        // Important for proper scrolling behavior
-        initialOffsetFromBottom={1}
-        extraScroll={0}
-      >
-        <View
-          style={[
-            styles.actionSheetContent,
-            { backgroundColor: theme.colors.surface },
-          ]}
-        >
-          {/* Action Sheet Header */}
+      // Memoize callback functions to prevent unnecessary re-renders
+      const memoizedQueueItemPress = useCallback(
+        (item, index) => handleQueueItemPress(item, index),
+        [handleQueueItemPress]
+      );
+
+      const memoizedRemoveFromQueue = useCallback(
+        (index) => handleRemoveFromQueue(index),
+        [handleRemoveFromQueue]
+      );
+
+      // Memoize the render function for FlatList
+      const renderQueueItem = useCallback(
+        ({ item, index }) => (
+          <QueueItem
+            item={item}
+            index={index}
+            isCurrentTrack={index === currentTrackIndex}
+            handleQueueItemPress={memoizedQueueItemPress}
+            queue={queue}
+            handleRemoveFromQueue={memoizedRemoveFromQueue}
+            theme={theme}
+          />
+        ),
+        [currentTrackIndex, memoizedQueueItemPress, memoizedRemoveFromQueue, queue, theme]
+      );
+
+      // Memoize the key extractor function
+      const keyExtractor = useCallback((item, index) => `${item.id}-${index}`, []);
+
+      // Memoize empty queue view
+      const EmptyQueueView = useMemo(
+        () => (
           <View
             style={[
-              styles.actionSheetHeader,
-              { borderBottomColor: theme.colors.border },
+              styles.emptyStateContainer,
+              { backgroundColor: theme.colors.glassBackground },
             ]}
           >
-            <View>
-              <Text
-                style={[
-                  styles.actionSheetTitle,
-                  { color: theme.colors.textPrimary },
-                ]}
-              >
-                Queue
-              </Text>
-              <Text
-                style={[
-                  styles.actionSheetSubtitle,
-                  { color: theme.colors.textSecondary },
-                ]}
-              >
-                {queue.length} {queue.length === 1 ? "song" : "songs"}
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => ref.current?.hide()}
+            <Ionicons
+              name="musical-notes"
+              size={48}
+              color={theme.colors.textSecondary}
+            />
+            <Text
               style={[
-                styles.actionSheetCloseButton,
-                { backgroundColor: theme.colors.glassBackground },
+                styles.emptyStateTitle,
+                { color: theme.colors.textPrimary },
               ]}
             >
-              <Ionicons
-                name="close"
-                size={20}
-                color={theme.colors.textSecondary}
-              />
-            </TouchableOpacity>
+              Queue is Empty
+            </Text>
+            <Text
+              style={[
+                styles.emptyStateSubtitle,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
+              Add songs to see them here
+            </Text>
           </View>
+        ),
+        [theme.colors]
+      );
 
-          {/* Queue List */}
-          <View style={styles.actionSheetBody}>
-            {queue.length === 0 ? (
-              <View
+      return (
+        <ActionSheet
+          ref={ref}
+          containerStyle={{
+            backgroundColor: theme.colors.surface,
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+          }}
+          indicatorStyle={{
+            backgroundColor: theme.colors.textSecondary,
+            width: 40,
+            height: 4,
+          }}
+          gestureEnabled={true}
+          statusBarTranslucent
+          drawUnderStatusbar={false}
+          defaultOverlayOpacity={0.3}
+          onClose={onClose}
+          initialOffsetFromBottom={1}
+          extraScroll={0}
+        >
+          <View
+            style={[
+              styles.actionSheetContent,
+              { backgroundColor: theme.colors.surface },
+            ]}
+          >
+            {/* Action Sheet Header */}
+            <View
+              style={[
+                styles.actionSheetHeader,
+                { borderBottomColor: theme.colors.border },
+              ]}
+            >
+              <View>
+                <Text
+                  style={[
+                    styles.actionSheetTitle,
+                    { color: theme.colors.textPrimary },
+                  ]}
+                >
+                  Queue
+                </Text>
+                <Text
+                  style={[
+                    styles.actionSheetSubtitle,
+                    { color: theme.colors.textSecondary },
+                  ]}
+                >
+                  {queue.length} {queue.length === 1 ? "song" : "songs"}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => ref.current?.hide()}
                 style={[
-                  styles.emptyStateContainer,
+                  styles.actionSheetCloseButton,
                   { backgroundColor: theme.colors.glassBackground },
                 ]}
               >
                 <Ionicons
-                  name="musical-notes"
-                  size={48}
+                  name="close"
+                  size={20}
                   color={theme.colors.textSecondary}
                 />
-                <Text
-                  style={[
-                    styles.emptyStateTitle,
-                    { color: theme.colors.textPrimary },
-                  ]}
-                >
-                  Queue is Empty
-                </Text>
-                <Text
-                  style={[
-                    styles.emptyStateSubtitle,
-                    { color: theme.colors.textSecondary },
-                  ]}
-                >
-                  Add songs to see them here
-                </Text>
-              </View>
-            ) : (
-              <>
-                <FlatList
-                  data={queue}
-                  keyExtractor={(item, index) => `${item.id}-${index}`}
-                  renderItem={({ item, index }) => (
-                    <QueueItem
-                      item={item}
-                      index={index}
-                      isCurrentTrack={index === currentTrackIndex}
-                      handleQueueItemPress={handleQueueItemPress}
-                      queue={queue}
-                      handleRemoveFromQueue={handleRemoveFromQueue}
-                      theme={theme}
-                    />
-                  )}
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={styles.queueList}
-                  // Add these properties to improve scrolling
-                  nestedScrollEnabled={true}
-                  removeClippedSubviews={false}
-                />
+              </TouchableOpacity>
+            </View>
 
-                {/* Loading indicator for auto-related songs */}
-                {isLoadingRelated && (
-                  <View
-                    style={[
-                      styles.loadingContainer,
-                      { backgroundColor: theme.colors.glassBackground },
-                    ]}
-                  >
-                    <ActivityIndicator
-                      size="small"
-                      color={theme.colors.primary}
-                    />
-                    <Text
+            {/* Queue List */}
+            <View style={styles.actionSheetBody}>
+              {queue.length === 0 ? (
+                EmptyQueueView
+              ) : (
+                <>
+                  <FlatList
+                    data={queue}
+                    keyExtractor={keyExtractor}
+                    renderItem={renderQueueItem}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.queueList}
+                    nestedScrollEnabled={true}
+                    removeClippedSubviews={false}
+                    // Add these props to improve performance
+                    windowSize={5}
+                    maxToRenderPerBatch={10}
+                    getItemLayout={(data, index) => ({
+                      length: 80, // Height of the QueueItem
+                      offset: 80 * index,
+                      index
+                    })}
+                  />
+
+                  {/* Loading indicator for auto-related songs */}
+                  {isLoadingRelated && (
+                    <View
                       style={[
-                        styles.loadingText,
-                        { color: theme.colors.textSecondary },
+                        styles.loadingContainer,
+                        { backgroundColor: theme.colors.glassBackground },
                       ]}
                     >
-                      Loading related songs...
-                    </Text>
-                  </View>
-                )}
-              </>
-            )}
+                      <ActivityIndicator
+                        size="small"
+                        color={theme.colors.primary}
+                      />
+                      <Text
+                        style={[
+                          styles.loadingText,
+                          { color: theme.colors.textSecondary },
+                        ]}
+                      >
+                        Loading related songs...
+                      </Text>
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
           </View>
-        </View>
-      </ActionSheet>
-    );
-  }
+        </ActionSheet>
+      );
+    }
+  )
 );
 
 export default QueueActionSheet;
@@ -211,7 +247,6 @@ const styles = StyleSheet.create({
   },
   actionSheetBody: {
     flex: 1,
-    // Add maximum height to ensure the content is scrollable
     maxHeight: 500,
   },
   queueList: {

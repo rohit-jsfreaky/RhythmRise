@@ -1,6 +1,20 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React from "react";
+import React, { memo } from "react";
 import { Ionicons } from "@expo/vector-icons";
+
+// Create a custom equality check function that properly compares props
+const arePropsEqual = (prevProps, nextProps) => {
+  // Check if any meaningful props have changed
+  return (
+    prevProps.item.id === nextProps.item.id &&
+    prevProps.item.title === nextProps.item.title &&
+    prevProps.item.artist === nextProps.item.artist &&
+    prevProps.item.artwork === nextProps.item.artwork &&
+    prevProps.index === nextProps.index &&
+    prevProps.isCurrentTrack === nextProps.isCurrentTrack &&
+    prevProps.queue.length === nextProps.queue.length
+  );
+};
 
 const QueueItem = ({
   item,
@@ -85,7 +99,8 @@ const QueueItem = ({
   );
 };
 
-export default QueueItem;
+// Use the custom equality function with memo
+export default memo(QueueItem, arePropsEqual);
 
 const styles = StyleSheet.create({
   queueItem: {
@@ -96,6 +111,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 4,
     marginTop: 4,
+    height: 80, // Fixed height for getItemLayout optimization
   },
   queueItemImage: {
     width: 48,

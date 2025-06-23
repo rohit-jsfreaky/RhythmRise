@@ -1,4 +1,11 @@
-import TrackPlayer, { Capability, AppKilledPlaybackBehavior, IOSCategory, IOSCategoryMode, IOSCategoryOptions, AndroidAudioContentType } from 'react-native-track-player';
+import TrackPlayer, {
+  Capability,
+  AppKilledPlaybackBehavior,
+  IOSCategory,
+  IOSCategoryMode,
+  IOSCategoryOptions,
+  AndroidAudioContentType,
+} from "react-native-track-player";
 
 export const setupPlayer = async () => {
   try {
@@ -11,7 +18,11 @@ export const setupPlayer = async () => {
       // Better audio quality
       iosCategory: IOSCategory.Playback,
       iosCategoryMode: IOSCategoryMode.Default,
-      iosCategoryOptions: [IOSCategoryOptions.AllowBluetooth, IOSCategoryOptions.AllowBluetoothA2DP, IOSCategoryOptions.MixWithOthers],
+      iosCategoryOptions: [
+        IOSCategoryOptions.AllowBluetooth,
+        IOSCategoryOptions.AllowBluetoothA2DP,
+        IOSCategoryOptions.MixWithOthers,
+      ],
       androidAudioContentType: AndroidAudioContentType.Music,
     });
 
@@ -34,14 +45,15 @@ export const setupPlayer = async () => {
       ],
       // Continue playback when app is in background
       android: {
-        appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
+        appKilledPlaybackBehavior:
+          AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
         alwaysPauseOnInterruption: true,
       },
     });
 
     return true;
   } catch (e) {
-    console.log('Error setting up player:', e);
+    console.log("Error setting up player:", e);
     return false;
   }
 };

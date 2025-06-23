@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "my-app",
+    "name": "RhythmRise",
     "slug": "my-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -19,7 +19,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.rohit2609.myapp"
+      "package": "com.rohit2609.rhythmrise"
     },
     "web": {
       "favicon": "./assets/favicon.png"
