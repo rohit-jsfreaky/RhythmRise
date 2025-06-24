@@ -72,7 +72,7 @@ export const playSong = async (song, navigation) => {
     });
     await TrackPlayer.play();
     storeRecentlyPlayed(song);
-    navigation.navigate("Player");
+    navigation.navigate("Player", { song: song });
   } catch (error) {
     console.log("Error playing song:", error);
   }
@@ -101,7 +101,7 @@ export const playAllSongs = async (song, navigation, songs) => {
       if (idx > 0) await TrackPlayer.skip(idx);
     }
     await TrackPlayer.play();
-    navigation.replace("Tabs", { screen: "Player" });
+    navigation.replace("Tabs", { screen: "Player" }, { song: song });
   } catch (e) {
     console.log("Error playing favorite:", e);
   }

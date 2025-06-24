@@ -44,7 +44,7 @@ const fetchSavanRelated = async (song) => {
       throw new Error("Failed to fetch related songs from savan");
     }
     const data = await response.json();
-    console.log("Related songs from Savan: Fetched", data.length, "songs");
+    // console.log("Related songs from Savan: Fetched", data.length, "songs");
 
     // Transform the data to match our format for player consumption
     const transformedSongs = data.map((song) => ({
@@ -79,10 +79,10 @@ const addToQueue = async (songs) => {
   const queue = await TrackPlayer.getQueue();
   const existingIds = new Set(queue.map((song) => song.id));
 
-  console.log("Existing queue IDs:", existingIds);
+  // console.log("Existing queue IDs:", existingIds);
   const songsToAdd = songs.filter((song) => !existingIds.has(song.id));
 
-  console.log(`Adding ${songsToAdd.length} related songs to queue`);
+  // console.log(`Adding ${songsToAdd.length} related songs to queue`);
 
   try {
     for (const song of songsToAdd.slice(0, 5)) {
@@ -95,7 +95,7 @@ const addToQueue = async (songs) => {
         duration: song.duration || 0,
       });
     }
-    console.log("Successfully added related songs to queue");
+    // console.log("Successfully added related songs to queue");
   } catch (error) {
     console.log("Error adding songs to queue:", error);
   }
@@ -124,34 +124,34 @@ export const PlayerQueueProvider = ({ children }) => {
         const currentIndex = event.index;
         const currentQueue = await TrackPlayer.getQueue();
         setQueue(currentQueue);
-        console.log("Current queue length:", currentQueue.length);
+        // console.log("Current queue length:", currentQueue.length);
 
         if (typeof currentIndex === "number") {
           const remaining = currentQueue.length - (currentIndex + 1);
-          console.log("Remaining songs in queue:", remaining);
+          // console.log("Remaining songs in queue:", remaining);
 
           if (remaining <= 2) {
             const activeTrack = currentQueue[currentIndex];
             const relatedApiMode = decideRelatedApiMode(activeTrack);
-            console.log(
-              "Finding related songs for:",
-              activeTrack.title,
-              "via",
-              relatedApiMode
-            );
+            // console.log(
+            //   "Finding related songs for:",
+            //   activeTrack.title,
+            //   "via",
+            //   relatedApiMode
+            // );
 
             setIsLoadingRelated(true);
             try {
               if (relatedApiMode === "youtube") {
                 fetchYotubeRelated(activeTrack);
               } else if (relatedApiMode === "savan") {
-                console.log("Fetching JioSaavan related songs");
+                // console.log("Fetching JioSaavan related songs");
                 const relatedSongs = await fetchSavanRelated(activeTrack);
                 await addToQueue(relatedSongs);
 
                 // Update queue state after adding songs
                 const updatedQueue = await TrackPlayer.getQueue();
-                console.log("Updated queue length:", updatedQueue.length);
+                // console.log("Updated queue length:", updatedQueue.length);
                 setQueue(updatedQueue);
               }
             } catch (error) {

@@ -8,9 +8,9 @@ import TrackPlayer, {
 import * as Haptics from "expo-haptics";
 import * as SecureStore from "expo-secure-store";
 
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "../../contexts/ThemeContext";
-import { mmkvStorage } from "../../utils/Favorite";
+import { isFavorite, mmkvStorage, toggleFavorite } from "../../utils/Favorite";
 
 export const useplayer = () => {
   const { position, duration } = useProgress();
@@ -29,6 +29,19 @@ export const useplayer = () => {
   const { state } = playbackState;
   const navigation = useNavigation();
   const { theme } = useTheme();
+  const [trackInFavorites, setTrackInFavorites] = useState(false);
+
+  const [currentSong, setCurrentSong] = useState(null);
+
+  const route = useRoute();
+
+  const { song } = route.params || {};
+
+  useEffect(() => {
+    if (song) {
+      setCurrentSong(song);
+    }
+  }, [song]);
 
   // ActionSheet ref
   const actionSheetRef = useRef(null);
@@ -90,9 +103,17 @@ export const useplayer = () => {
     }
   };
 
-  useEffect(() => {
-    checkTrackInPlaylists();
-  }, [track]);
+  const checkTrackInFavorites = async () => {
+    // console.log("Checking favorites for track:", currentSong);
+    if (!currentSong) return;
+
+    const stored = mmkvStorage.getString("favorites");
+    const favorites = stored ? JSON.parse(stored) : [];
+    console.log("Stored favorites:", favorites);
+    const favoriteTrack = await isFavorite(currentSong, favorites);
+
+    setTrackInFavorites(favoriteTrack);
+  };
 
   // Detect loading state
   useEffect(() => {
@@ -238,6 +259,16 @@ export const useplayer = () => {
     }
   };
 
+  const toggleTrackInFavorites = async (song) => {
+    if (!currentSong) return;
+
+    const stored = mmkvStorage.getString("favorites");
+    let favorites = stored ? JSON.parse(stored) : [];
+
+    await toggleFavorite(currentSong, favorites, () => {});
+    setTrackInFavorites(!trackInFavorites);
+  };
+
   return {
     position,
     duration,
@@ -282,5 +313,9 @@ export const useplayer = () => {
     confirmRemoveFromPlaylist,
     formatTime,
     isPlaying,
+    checkTrackInFavorites,
+    trackInFavorites,
+    toggleTrackInFavorites,
+    currentSong,
   };
 };

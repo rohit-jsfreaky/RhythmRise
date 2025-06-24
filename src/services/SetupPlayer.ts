@@ -9,6 +9,8 @@ import TrackPlayer, {
 
 export const setupPlayer = async () => {
   try {
+
+
     await TrackPlayer.setupPlayer({
       // Better buffer size for streaming
       minBuffer: 15, // Default is 15
@@ -42,6 +44,7 @@ export const setupPlayer = async () => {
         Capability.Pause,
         Capability.SkipToNext,
         Capability.SkipToPrevious,
+        Capability.SeekTo
       ],
       // Continue playback when app is in background
       android: {

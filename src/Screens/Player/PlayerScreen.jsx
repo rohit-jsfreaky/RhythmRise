@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,8 @@ import PlayerMenu from "../../Components/PlayerMenu";
 import RemovePlaylistModal from "../../Components/RemovePlaylistModal";
 import QueueActionSheet from "../../Components/QueueActionSheet";
 import { useplayer } from "./usePlayer";
+import { useFocusEffect } from "@react-navigation/native";
+import TrackPlayer from "react-native-track-player";
 
 const { width } = Dimensions.get("window");
 const ARTWORK_SIZE = width * 0.75;
@@ -67,8 +69,19 @@ const PlayerScreen = () => {
     handleRemoveFromPlaylist,
     confirmRemoveFromPlaylist,
     formatTime,
-    isPlaying
+    isPlaying,
+    checkTrackInFavorites,
+    trackInFavorites,
+    toggleTrackInFavorites,
+    currentSong,
   } = useplayer();
+
+  useFocusEffect(
+    useCallback(() => {
+      checkTrackInPlaylists();
+      checkTrackInFavorites();
+    }, [currentSong])
+  );
 
   if (!track) {
     return <NoTrackPlayer />;
@@ -284,11 +297,20 @@ const PlayerScreen = () => {
           </View>
 
           <View style={styles.additionalControls}>
-            <TouchableOpacity style={styles.additionalButton}>
+            <TouchableOpacity
+              onPress={() => {
+                toggleTrackInFavorites(track);
+              }}
+              style={styles.additionalButton}
+            >
               <Ionicons
-                name="heart-outline"
+                name={trackInFavorites ? "heart" : "heart-outline"}
                 size={22}
-                color={theme.colors.textPrimary + "B3"}
+                color={
+                  trackInFavorites
+                    ? theme.colors.errorColor
+                    : theme.colors.textPrimary
+                }
               />
             </TouchableOpacity>
 
