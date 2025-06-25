@@ -13,9 +13,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../contexts/ThemeContext";
 import TopTitle from "../../Components/TopTitle";
+import { useProfileScreen } from "./useProfileScreen";
 
 const ProfileScreen = () => {
   const { theme, currentTheme, changeTheme, themes } = useTheme();
+
+  const { appCurrentVersion } = useProfileScreen();
 
   const handleThemeChange = (themeName) => {
     Alert.alert("Change Theme", `Switch to ${themes[themeName].name}?`, [
@@ -263,19 +266,29 @@ const ProfileScreen = () => {
                     ]}
                   >
                     <Ionicons
-                      name="notifications"
+                      name="refresh-outline"
                       size={20}
-                      color={theme.colors.primary}
+                      color={theme.colors.textPrimary}
                     />
                   </View>
-                  <Text
-                    style={[
-                      styles.settingText,
-                      { color: theme.colors.textPrimary },
-                    ]}
-                  >
-                    Notifications
-                  </Text>
+                  <View>
+                    <Text
+                      style={[
+                        styles.settingText,
+                        { color: theme.colors.textPrimary },
+                      ]}
+                    >
+                      Check For Updates
+                    </Text>
+                    <Text
+                      style={[
+                        styles.settingText,
+                        { color: theme.colors.textPrimary },
+                      ]}
+                    >
+                      {appCurrentVersion}
+                    </Text>
+                  </View>
                 </View>
                 <Ionicons
                   name="chevron-forward"
@@ -295,7 +308,7 @@ const ProfileScreen = () => {
                     <Ionicons
                       name="download"
                       size={20}
-                      color={theme.colors.secondary}
+                      color={theme.colors.textPrimary}
                     />
                   </View>
                   <Text
@@ -325,7 +338,7 @@ const ProfileScreen = () => {
                     <Ionicons
                       name="help-circle"
                       size={20}
-                      color={theme.colors.accent}
+                      color={theme.colors.textPrimary}
                     />
                   </View>
                   <Text
