@@ -26,6 +26,7 @@ const ProfileScreen = () => {
     updateError,
     hasCheckedOnce,
     checkForUpdates,
+    onDownloadAndInstall,
   } = useProfileScreen();
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -435,6 +436,7 @@ const ProfileScreen = () => {
         theme={theme}
         onCheckUpdate={handleUpdateCheck}
         hasCheckedOnce={hasCheckedOnce}
+        onDownloadAndInstall={onDownloadAndInstall}
       />
     </>
   );

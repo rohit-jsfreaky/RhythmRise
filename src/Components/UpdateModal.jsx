@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Modal,
   View,
@@ -7,13 +7,18 @@ import {
   StyleSheet,
   Dimensions,
   ActivityIndicator,
-  Linking,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
+  Alert,
+  Platform,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import * as MediaLibrary from "expo-media-library";
 
-const { width } = Dimensions.get('window');
+import RNFS from "react-native-fs";
+import FileViewer from "react-native-file-viewer";
+
+const { width } = Dimensions.get("window");
 
 const UpdateModal = ({
   visible,
@@ -26,18 +31,90 @@ const UpdateModal = ({
   theme,
   onCheckUpdate,
   hasCheckedOnce,
+  onDownloadAndInstall,
 }) => {
-  const handleDownload = () => {
-    // You can implement the download logic here
-    // For now, we'll just open the GitHub releases page
-    Linking.openURL('https://github.com/rohit-jsfreaky/RhythmRise/releases');
+  const handleDownload = async () => {
+    if (Platform.OS !== "android") {
+      Alert.alert(
+        "Not Supported",
+        "In-app updates are only supported on Android devices.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    try {
+      // Show permission explanation first
+      Alert.alert(
+        "Storage Permission Required",
+        "RhythmRise needs storage permission to download the update file. This permission is only used for downloading and installing app updates.",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+            onPress: () => {
+              console.log("User cancelled permission request");
+            },
+          },
+          {
+            text: "Grant Permission",
+            onPress: async () => {
+              console.log("User agreed to grant permission");
+
+              // Request storage permission using Expo
+              const { status } = await MediaLibrary.requestPermissionsAsync();
+
+              if (status === "granted") {
+                console.log("Storage permission granted");
+                Alert.alert(
+                  "Permission Granted",
+                  "Storage permission has been granted successfully. You can now proceed with the download.",
+                  [
+                    {
+                      text: "Start Download",
+                      onPress: () => {
+                        if (onDownloadAndInstall) {
+                          onDownloadAndInstall();
+                        }
+                      },
+                    },
+                  ]
+                );
+              } else {
+                console.log("Storage permission denied");
+                Alert.alert(
+                  "Permission Denied",
+                  "Storage permission is required to download updates. Please grant the permission in your device settings to proceed with the update.",
+                  [{ text: "OK", style: "default" }]
+                );
+              }
+            },
+          },
+        ],
+        {
+          cancelable: false,
+        }
+      );
+    } catch (error) {
+      console.error("Permission request error:", error);
+      Alert.alert(
+        "Permission Error",
+        "There was an error requesting permission. Please try again.",
+        [{ text: "OK" }]
+      );
+    }
   };
 
   const renderContent = () => {
     if (isChecking) {
       return (
         <View style={styles.contentContainer}>
-          <View style={[styles.iconContainer, { backgroundColor: theme.colors.primary + '20' }]}>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: theme.colors.primary + "20" },
+            ]}
+          >
             <ActivityIndicator size="large" color={theme.colors.primary} />
           </View>
           <Text style={[styles.title, { color: theme.colors.textPrimary }]}>
@@ -53,17 +130,30 @@ const UpdateModal = ({
     if (error) {
       return (
         <View style={styles.contentContainer}>
-          <View style={[styles.iconContainer, { backgroundColor: theme.colors.errorColor + '20' }]}>
-            <Ionicons name="alert-circle" size={40} color={theme.colors.errorColor} />
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: theme.colors.errorColor + "20" },
+            ]}
+          >
+            <Ionicons
+              name="alert-circle"
+              size={40}
+              color={theme.colors.errorColor}
+            />
           </View>
           <Text style={[styles.title, { color: theme.colors.textPrimary }]}>
             Check Failed
           </Text>
           <Text style={[styles.message, { color: theme.colors.textSecondary }]}>
-            Unable to check for updates. Please check your internet connection and try again.
+            Unable to check for updates. Please check your internet connection
+            and try again.
           </Text>
           <TouchableOpacity
-            style={[styles.retryButton, { backgroundColor: theme.colors.primary }]}
+            style={[
+              styles.retryButton,
+              { backgroundColor: theme.colors.primary },
+            ]}
             onPress={onCheckUpdate}
             activeOpacity={0.8}
           >
@@ -82,38 +172,74 @@ const UpdateModal = ({
     if (hasUpdate) {
       return (
         <View style={styles.contentContainer}>
-          <View style={[styles.iconContainer, { backgroundColor: theme.colors.successColor + '20' }]}>
-            <Ionicons name="download" size={40} color={theme.colors.successColor} />
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: theme.colors.successColor + "20" },
+            ]}
+          >
+            <Ionicons
+              name="download"
+              size={40}
+              color={theme.colors.successColor}
+            />
           </View>
           <Text style={[styles.title, { color: theme.colors.textPrimary }]}>
             Update Available!
           </Text>
           <Text style={[styles.message, { color: theme.colors.textSecondary }]}>
-            A new version is available for download.
+            A new version is available for download and installation.
           </Text>
-          
+
           <View style={styles.versionContainer}>
             <View style={styles.versionItem}>
-              <Text style={[styles.versionLabel, { color: theme.colors.textSecondary }]}>
+              <Text
+                style={[
+                  styles.versionLabel,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
                 Current Version
               </Text>
-              <Text style={[styles.versionNumber, { color: theme.colors.textPrimary }]}>
+              <Text
+                style={[
+                  styles.versionNumber,
+                  { color: theme.colors.textPrimary },
+                ]}
+              >
                 v{currentVersion}
               </Text>
             </View>
-            <Ionicons name="arrow-forward" size={20} color={theme.colors.primary} />
+            <Ionicons
+              name="arrow-forward"
+              size={20}
+              color={theme.colors.primary}
+            />
             <View style={styles.versionItem}>
-              <Text style={[styles.versionLabel, { color: theme.colors.textSecondary }]}>
+              <Text
+                style={[
+                  styles.versionLabel,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
                 Latest Version
               </Text>
-              <Text style={[styles.versionNumber, { color: theme.colors.successColor }]}>
+              <Text
+                style={[
+                  styles.versionNumber,
+                  { color: theme.colors.successColor },
+                ]}
+              >
                 v{latestVersion}
               </Text>
             </View>
           </View>
 
           <TouchableOpacity
-            style={[styles.downloadButton, { backgroundColor: theme.colors.successColor }]}
+            style={[
+              styles.downloadButton,
+              { backgroundColor: theme.colors.successColor },
+            ]}
             onPress={handleDownload}
             activeOpacity={0.8}
           >
@@ -121,8 +247,10 @@ const UpdateModal = ({
               colors={[theme.colors.successColor, theme.colors.primary]}
               style={styles.buttonGradient}
             >
-              <Ionicons name="download-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.buttonText}>Download Update</Text>
+              <Ionicons name="key" size={20} color="#FFFFFF" />
+              <Text style={styles.buttonText}>
+                Request Permission & Download
+              </Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -132,8 +260,17 @@ const UpdateModal = ({
     if (hasCheckedOnce && !hasUpdate) {
       return (
         <View style={styles.contentContainer}>
-          <View style={[styles.iconContainer, { backgroundColor: theme.colors.successColor + '20' }]}>
-            <Ionicons name="checkmark-circle" size={40} color={theme.colors.successColor} />
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: theme.colors.successColor + "20" },
+            ]}
+          >
+            <Ionicons
+              name="checkmark-circle"
+              size={40}
+              color={theme.colors.successColor}
+            />
           </View>
           <Text style={[styles.title, { color: theme.colors.textPrimary }]}>
             You're Up to Date!
@@ -141,12 +278,22 @@ const UpdateModal = ({
           <Text style={[styles.message, { color: theme.colors.textSecondary }]}>
             You have the latest version of RhythmRise installed.
           </Text>
-          
+
           <View style={styles.currentVersionContainer}>
-            <Text style={[styles.versionLabel, { color: theme.colors.textSecondary }]}>
+            <Text
+              style={[
+                styles.versionLabel,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
               Current Version
             </Text>
-            <Text style={[styles.versionNumber, { color: theme.colors.successColor }]}>
+            <Text
+              style={[
+                styles.versionNumber,
+                { color: theme.colors.successColor },
+              ]}
+            >
               v{currentVersion}
             </Text>
           </View>
@@ -157,18 +304,31 @@ const UpdateModal = ({
     // Initial state - show check button
     return (
       <View style={styles.contentContainer}>
-        <View style={[styles.iconContainer, { backgroundColor: theme.colors.primary + '20' }]}>
-          <Ionicons name="refresh-outline" size={40} color={theme.colors.primary} />
+        <View
+          style={[
+            styles.iconContainer,
+            { backgroundColor: theme.colors.primary + "20" },
+          ]}
+        >
+          <Ionicons
+            name="refresh-outline"
+            size={40}
+            color={theme.colors.primary}
+          />
         </View>
         <Text style={[styles.title, { color: theme.colors.textPrimary }]}>
           Check for Updates
         </Text>
         <Text style={[styles.message, { color: theme.colors.textSecondary }]}>
-          Tap the button below to check if there are any updates available for RhythmRise.
+          Tap the button below to check if there are any updates available for
+          RhythmRise.
         </Text>
-        
+
         <TouchableOpacity
-          style={[styles.checkButton, { backgroundColor: theme.colors.primary }]}
+          style={[
+            styles.checkButton,
+            { backgroundColor: theme.colors.primary },
+          ]}
           onPress={onCheckUpdate}
           activeOpacity={0.8}
         >
@@ -213,7 +373,11 @@ const UpdateModal = ({
                 onPress={onClose}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Ionicons name="close" size={24} color={theme.colors.textSecondary} />
+                <Ionicons
+                  name="close"
+                  size={24}
+                  color={theme.colors.textSecondary}
+                />
               </TouchableOpacity>
 
               {renderContent()}
@@ -228,12 +392,12 @@ const UpdateModal = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   backdrop: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContainer: {
     width: width - 40,
@@ -248,92 +412,92 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   closeButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 16,
     right: 16,
     zIndex: 1,
     width: 32,
     height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   contentContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingTop: 16,
   },
   iconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 24,
   },
   title: {
     fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 12,
   },
   message: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 24,
     marginBottom: 24,
     opacity: 0.8,
   },
   versionContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
     marginBottom: 24,
     paddingHorizontal: 16,
   },
   versionItem: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
   versionLabel: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 4,
     opacity: 0.7,
   },
   versionNumber: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   currentVersionContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 8,
   },
   checkButton: {
-    width: '100%',
+    width: "100%",
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   downloadButton: {
-    width: '100%',
+    width: "100%",
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   retryButton: {
-    width: '100%',
+    width: "100%",
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   buttonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 16,
     paddingHorizontal: 24,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 8,
   },
 });

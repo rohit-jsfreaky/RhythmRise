@@ -17,6 +17,7 @@
     "@types/react": "~18.2.79",
     "expo": "51.0.28",
     "expo-blur": "~13.0.3",
+    "expo-file-system": "~17.0.1",
     "expo-haptics": "~13.0.1",
     "expo-linear-gradient": "~13.0.2",
     "expo-secure-store": "~13.0.2",
@@ -25,6 +26,8 @@
     "react-native": "0.74.5",
     "react-native-actions-sheet": "^0.9.7",
     "react-native-device-info": "^14.0.4",
+    "react-native-file-viewer": "^2.1.5",
+    "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "~2.16.1",
     "react-native-mmkv": "^2.12.2",
     "react-native-pager-view": "6.3.0",
@@ -34,7 +37,8 @@
     "react-native-screens": "~4.11.1",
     "react-native-shared-element": "^0.8.9",
     "react-native-track-player": "^4.1.1",
-    "typescript": "~5.3.3"
+    "typescript": "~5.3.3",
+    "expo-media-library": "~16.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
