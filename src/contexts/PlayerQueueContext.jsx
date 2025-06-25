@@ -16,20 +16,73 @@ export const decideRelatedApiMode = (song) => {
   }
 };
 
+function extractYouTubeVideoId(apiUrl) {
+  try {
+    const urlObj = new URL(apiUrl);
+    const ytUrlEncoded = urlObj.searchParams.get("url");
+
+    if (!ytUrlEncoded) {
+      throw new Error("No YouTube URL found in the API URL.");
+    }
+
+    // Decode the URL
+    const ytUrl = decodeURIComponent(ytUrlEncoded);
+
+    // Extract the video ID
+    const ytUrlObj = new URL(ytUrl);
+    const videoId = ytUrlObj.searchParams.get("v");
+
+    if (!videoId) {
+      throw new Error("No video ID found in the YouTube URL.");
+    }
+
+    return videoId;
+  } catch (err) {
+    console.error("Error extracting video ID:", err.message);
+    return null;
+  }
+}
+
 const fetchYotubeRelated = async (song) => {
   try {
+    const videoId = extractYouTubeVideoId(song.url);
+    if (!videoId) {
+      console.log("No valid YouTube video ID found for song:", song);
+      return [];
+    }
+    
     const response = await fetch(
-      `${apiBaseUrl}related-songs?videoId=${song.id}`
+      `${apiBaseUrl}related-songs?videoId=${videoId}`
     );
 
     if (!response.ok) {
       throw new Error("Failed to fetch related songs from YouTube");
     }
+    
     const data = await response.json();
+    if (!data || !data.relatedSongs || !Array.isArray(data.relatedSongs)) {
+      console.log("No related songs found for YouTube video ID:", videoId);
+      return [];
+    }
 
-    console.log("Related songs from YouTube:", data);
+    console.log("Related songs from YouTube: Fetched", data.relatedSongs.length, "songs");
+
+    // Transform the YouTube related songs to match our format
+    const transformedSongs = data.relatedSongs.map((song) => ({
+      id: song.url, // Use the full YouTube URL as ID
+      url: song.url,
+      title: song.title,
+      artist: song.author || "Unknown Artist",
+      uploader: song.author || "Unknown Artist",
+      thumbnail: song.thumbnail,
+      duration: song.duration,
+      source: "youtube",
+    }));
+
+    return transformedSongs;
   } catch (error) {
     console.log("Error fetching related songs from YouTube:", error);
+    return [];
   }
 };
 
@@ -44,7 +97,7 @@ const fetchSavanRelated = async (song) => {
       throw new Error("Failed to fetch related songs from savan");
     }
     const data = await response.json();
-    // console.log("Related songs from Savan: Fetched", data.length, "songs");
+    console.log("Related songs from Savan: Fetched", data.length, "songs");
 
     // Transform the data to match our format for player consumption
     const transformedSongs = data.map((song) => ({
@@ -79,23 +132,29 @@ const addToQueue = async (songs) => {
   const queue = await TrackPlayer.getQueue();
   const existingIds = new Set(queue.map((song) => song.id));
 
-  // console.log("Existing queue IDs:", existingIds);
-  const songsToAdd = songs.filter((song) => !existingIds.has(song.id));
+  // Filter out songs that are already in the queue
+  const songsToAdd = songs.filter((song) => !existingIds.has(song.id || song.url));
 
-  // console.log(`Adding ${songsToAdd.length} related songs to queue`);
+  console.log(`Adding ${songsToAdd.length} new related songs to queue`);
 
   try {
     for (const song of songsToAdd.slice(0, 5)) {
-      await TrackPlayer.add({
-        id: song.id,
+      const trackToAdd = {
+        id: song.url || song.id,
         url: decideSingleSongUrl(song),
         title: song.title,
         artist: song.uploader || song.artist || "Unknown Artist",
         artwork: song.thumbnail,
-        duration: song.duration || 0,
-      });
+        duration: 
+          song.duration && typeof song.duration === "string"
+            ? getSecondsFromDuration(song.duration)
+            : song.duration || 0,
+      };
+
+      console.log("Adding song to queue:", trackToAdd.title);
+      await TrackPlayer.add(trackToAdd);
     }
-    // console.log("Successfully added related songs to queue");
+    console.log("Successfully added related songs to queue");
   } catch (error) {
     console.log("Error adding songs to queue:", error);
   }
@@ -124,35 +183,43 @@ export const PlayerQueueProvider = ({ children }) => {
         const currentIndex = event.index;
         const currentQueue = await TrackPlayer.getQueue();
         setQueue(currentQueue);
-        // console.log("Current queue length:", currentQueue.length);
+        console.log("Current queue length:", currentQueue.length);
 
         if (typeof currentIndex === "number") {
           const remaining = currentQueue.length - (currentIndex + 1);
-          // console.log("Remaining songs in queue:", remaining);
+          console.log("Remaining songs in queue:", remaining);
 
           if (remaining <= 2) {
             const activeTrack = currentQueue[currentIndex];
             const relatedApiMode = decideRelatedApiMode(activeTrack);
-            // console.log(
-            //   "Finding related songs for:",
-            //   activeTrack.title,
-            //   "via",
-            //   relatedApiMode
-            // );
+            console.log(
+              "Finding related songs for:",
+              activeTrack.title,
+              "via",
+              relatedApiMode
+            );
 
             setIsLoadingRelated(true);
             try {
+              let relatedSongs = [];
+              
               if (relatedApiMode === "youtube") {
-                fetchYotubeRelated(activeTrack);
+                console.log("Fetching YouTube related songs");
+                relatedSongs = await fetchYotubeRelated(activeTrack);
               } else if (relatedApiMode === "savan") {
-                // console.log("Fetching JioSaavan related songs");
-                const relatedSongs = await fetchSavanRelated(activeTrack);
-                await addToQueue(relatedSongs);
+                console.log("Fetching JioSaavan related songs");
+                relatedSongs = await fetchSavanRelated(activeTrack);
+              }
 
+              if (relatedSongs && relatedSongs.length > 0) {
+                await addToQueue(relatedSongs);
+                
                 // Update queue state after adding songs
                 const updatedQueue = await TrackPlayer.getQueue();
-                // console.log("Updated queue length:", updatedQueue.length);
+                console.log("Updated queue length:", updatedQueue.length);
                 setQueue(updatedQueue);
+              } else {
+                console.log("No related songs found to add");
               }
             } catch (error) {
               console.log("Error handling related songs:", error);
