@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { LinearGradient } from "expo-linear-gradient";
@@ -14,11 +14,21 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../contexts/ThemeContext";
 import TopTitle from "../../Components/TopTitle";
 import { useProfileScreen } from "./useProfileScreen";
+import UpdateModal from "../../Components/UpdateModal";
 
 const ProfileScreen = () => {
   const { theme, currentTheme, changeTheme, themes } = useTheme();
+  const {
+    appCurrentVersion,
+    latestVersion,
+    isUpdateAvailable,
+    isCheckingUpdate,
+    updateError,
+    hasCheckedOnce,
+    checkForUpdates,
+  } = useProfileScreen();
 
-  const { appCurrentVersion } = useProfileScreen();
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   const handleThemeChange = (themeName) => {
     Alert.alert("Change Theme", `Switch to ${themes[themeName].name}?`, [
@@ -31,10 +41,29 @@ const ProfileScreen = () => {
     ]);
   };
 
+  const handleCheckForUpdates = async () => {
+    setShowUpdateModal(true);
+    if (!hasCheckedOnce) {
+      try {
+        await checkForUpdates();
+      } catch (error) {
+        // Error is handled in the hook
+      }
+    }
+  };
+
+  const handleUpdateCheck = async () => {
+    try {
+      await checkForUpdates();
+    } catch (error) {
+      // Error is handled in the hook
+    }
+  };
+
   const getThemeIcon = (themeName) => {
     switch (themeName) {
       case "light":
-        return "sunny-outline"; // Light mode icon
+        return "sunny-outline";
       case "purple":
         return "planet";
       case "ocean":
@@ -45,7 +74,6 @@ const ProfileScreen = () => {
         return "sunny";
       case "rose":
         return "rose";
-      // New Apple-inspired theme icons
       case "arctic":
         return "snow";
       case "graphite":
@@ -67,302 +95,348 @@ const ProfileScreen = () => {
     }
   };
 
-  // Determine status bar style based on theme
   const getStatusBarStyle = () => {
     return currentTheme === "light" ? "dark" : "light";
   };
 
   return (
-    <View
-      style={[styles.scrollView, { backgroundColor: theme.colors.background }]}
-    >
-      <LinearGradient
-        colors={theme.colors.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
+    <>
+      <View
+        style={[
+          styles.scrollView,
+          { backgroundColor: theme.colors.background },
+        ]}
       >
-        <SafeAreaView style={styles.screen}>
-          <StatusBar style={getStatusBarStyle()} />
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {/* Header */}
-            <View style={styles.header}>
-              <TopTitle title="Profile" />
-            </View>
+        <LinearGradient
+          colors={theme.colors.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradient}
+        >
+          <SafeAreaView style={styles.screen}>
+            <StatusBar style={getStatusBarStyle()} />
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Header */}
+              <View style={styles.header}>
+                <TopTitle title="Profile" />
+              </View>
 
-            {/* User Info Section */}
-            <View
-              style={[
-                styles.section,
-                {
-                  backgroundColor: theme.colors.glassBackground,
-                  shadowColor: theme.colors.shadowColor,
-                },
-              ]}
-            >
-              <View style={styles.userInfo}>
-                <View
-                  style={[
-                    styles.avatar,
-                    { backgroundColor: theme.colors.primary },
-                  ]}
-                >
-                  <Text
+              {/* User Info Section */}
+              <View
+                style={[
+                  styles.section,
+                  {
+                    backgroundColor: theme.colors.glassBackground,
+                    shadowColor: theme.colors.shadowColor,
+                  },
+                ]}
+              >
+                <View style={styles.userInfo}>
+                  <View
                     style={[
-                      styles.avatarText,
-                      {
-                        color:
-                          currentTheme === "light"
-                            ? "#FFFFFF"
-                            : theme.colors.textPrimary,
-                      },
+                      styles.avatar,
+                      { backgroundColor: theme.colors.primary },
                     ]}
                   >
-                    U
-                  </Text>
-                </View>
-                <View style={styles.userDetails}>
-                  <Text
-                    style={[
-                      styles.userName,
-                      { color: theme.colors.textPrimary },
-                    ]}
-                  >
-                    Music Lover
-                  </Text>
-                  <Text
-                    style={[
-                      styles.userEmail,
-                      { color: theme.colors.textSecondary },
-                    ]}
-                  >
-                    user@rhythmrise.com
-                  </Text>
+                    <Text
+                      style={[
+                        styles.avatarText,
+                        {
+                          color:
+                            currentTheme === "light"
+                              ? "#FFFFFF"
+                              : theme.colors.textPrimary,
+                        },
+                      ]}
+                    >
+                      U
+                    </Text>
+                  </View>
+                  <View style={styles.userDetails}>
+                    <Text
+                      style={[
+                        styles.userName,
+                        { color: theme.colors.textPrimary },
+                      ]}
+                    >
+                      Music Lover
+                    </Text>
+                    <Text
+                      style={[
+                        styles.userEmail,
+                        { color: theme.colors.textSecondary },
+                      ]}
+                    >
+                      user@rhythmrise.com
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
 
-            {/* Theme Section */}
-            <View style={styles.sectionHeader}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: theme.colors.textPrimary },
-                ]}
-              >
-                Themes
-              </Text>
-              <Text
-                style={[
-                  styles.sectionSubtitle,
-                  { color: theme.colors.textSecondary },
-                ]}
-              >
-                Choose your preferred theme
-              </Text>
-            </View>
-
-            <View
-              style={[
-                styles.section,
-                {
-                  backgroundColor: theme.colors.glassBackground,
-                  shadowColor: theme.colors.shadowColor,
-                },
-              ]}
-            >
-              {Object.entries(themes).map(([key, themeData]) => (
-                <TouchableOpacity
-                  key={key}
+              {/* Theme Section */}
+              <View style={styles.sectionHeader}>
+                <Text
                   style={[
-                    styles.themeItem,
-                    currentTheme === key && {
-                      backgroundColor: theme.colors.primary + "20",
-                      borderColor: theme.colors.primary,
-                      borderWidth: 1,
-                    },
+                    styles.sectionTitle,
+                    { color: theme.colors.textPrimary },
                   ]}
-                  onPress={() => handleThemeChange(key)}
+                >
+                  Themes
+                </Text>
+                <Text
+                  style={[
+                    styles.sectionSubtitle,
+                    { color: theme.colors.textSecondary },
+                  ]}
+                >
+                  Choose your preferred theme
+                </Text>
+              </View>
+
+              <View
+                style={[
+                  styles.section,
+                  {
+                    backgroundColor: theme.colors.glassBackground,
+                    shadowColor: theme.colors.shadowColor,
+                  },
+                ]}
+              >
+                {Object.entries(themes).map(([key, themeData]) => (
+                  <TouchableOpacity
+                    key={key}
+                    style={[
+                      styles.themeItem,
+                      currentTheme === key && {
+                        backgroundColor: theme.colors.primary + "20",
+                        borderColor: theme.colors.primary,
+                        borderWidth: 1,
+                      },
+                    ]}
+                    onPress={() => handleThemeChange(key)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.themeLeft}>
+                      <View
+                        style={[
+                          styles.themeIconContainer,
+                          { backgroundColor: themeData.colors.primary + "20" },
+                        ]}
+                      >
+                        <Ionicons
+                          name={getThemeIcon(key)}
+                          size={24}
+                          color={themeData.colors.primary}
+                        />
+                      </View>
+                      <View style={styles.themeInfo}>
+                        <Text
+                          style={[
+                            styles.themeName,
+                            { color: theme.colors.textPrimary },
+                          ]}
+                        >
+                          {themeData.name}
+                        </Text>
+                        <View style={styles.colorPreview}>
+                          {[
+                            themeData.colors.primary,
+                            themeData.colors.secondary,
+                            themeData.colors.accent,
+                          ].map((color, index) => (
+                            <View
+                              key={index}
+                              style={[
+                                styles.colorDot,
+                                { backgroundColor: color },
+                              ]}
+                            />
+                          ))}
+                        </View>
+                      </View>
+                    </View>
+
+                    {currentTheme === key && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={24}
+                        color={theme.colors.primary}
+                      />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Settings Section */}
+              <View style={styles.sectionHeader}>
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    { color: theme.colors.textPrimary },
+                  ]}
+                >
+                  Settings
+                </Text>
+              </View>
+
+              <View
+                style={[
+                  styles.section,
+                  {
+                    backgroundColor: theme.colors.glassBackground,
+                    shadowColor: theme.colors.shadowColor,
+                  },
+                ]}
+              >
+                <TouchableOpacity
+                  style={styles.settingItem}
+                  onPress={handleCheckForUpdates}
                   activeOpacity={0.7}
                 >
-                  <View style={styles.themeLeft}>
+                  <View style={styles.settingLeft}>
                     <View
                       style={[
-                        styles.themeIconContainer,
-                        { backgroundColor: themeData.colors.primary + "20" },
+                        styles.settingIcon,
+                        {
+                          backgroundColor: isUpdateAvailable
+                            ? theme.colors.successColor + "20"
+                            : theme.colors.primary + "20",
+                        },
                       ]}
                     >
                       <Ionicons
-                        name={getThemeIcon(key)}
-                        size={24}
-                        color={themeData.colors.primary}
+                        name={
+                          isUpdateAvailable
+                            ? "arrow-up-circle"
+                            : "refresh-outline"
+                        }
+                        size={20}
+                        color={
+                          isUpdateAvailable
+                            ? theme.colors.successColor
+                            : theme.colors.textPrimary
+                        }
                       />
                     </View>
-                    <View style={styles.themeInfo}>
+                    <View>
+                      <View style={styles.updateTextContainer}>
+                        <Text
+                          style={[
+                            styles.settingText,
+                            { color: theme.colors.textPrimary },
+                          ]}
+                        >
+                          Check For Updates
+                        </Text>
+                        {isUpdateAvailable && (
+                          <View
+                            style={[
+                              styles.updateBadge,
+                              { backgroundColor: theme.colors.successColor },
+                            ]}
+                          >
+                            <Text style={styles.updateBadgeText}>New</Text>
+                          </View>
+                        )}
+                      </View>
                       <Text
                         style={[
-                          styles.themeName,
-                          { color: theme.colors.textPrimary },
+                          styles.settingSubtext,
+                          { color: theme.colors.textSecondary },
                         ]}
                       >
-                        {themeData.name}
+                        v{appCurrentVersion}
                       </Text>
-                      <View style={styles.colorPreview}>
-                        {[
-                          themeData.colors.primary,
-                          themeData.colors.secondary,
-                          themeData.colors.accent,
-                        ].map((color, index) => (
-                          <View
-                            key={index}
-                            style={[
-                              styles.colorDot,
-                              { backgroundColor: color },
-                            ]}
-                          />
-                        ))}
-                      </View>
                     </View>
                   </View>
-
-                  {currentTheme === key && (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={24}
-                      color={theme.colors.primary}
-                    />
-                  )}
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={theme.colors.textSecondary}
+                  />
                 </TouchableOpacity>
-              ))}
-            </View>
 
-            {/* Settings Section */}
-            <View style={styles.sectionHeader}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: theme.colors.textPrimary },
-                ]}
-              >
-                Settings
-              </Text>
-            </View>
-
-            <View
-              style={[
-                styles.section,
-                {
-                  backgroundColor: theme.colors.glassBackground,
-                  shadowColor: theme.colors.shadowColor,
-                },
-              ]}
-            >
-              <TouchableOpacity style={styles.settingItem}>
-                <View style={styles.settingLeft}>
-                  <View
-                    style={[
-                      styles.settingIcon,
-                      { backgroundColor: theme.colors.primary + "20" },
-                    ]}
-                  >
-                    <Ionicons
-                      name="refresh-outline"
-                      size={20}
-                      color={theme.colors.textPrimary}
-                    />
-                  </View>
-                  <View>
+                <TouchableOpacity style={styles.settingItem}>
+                  <View style={styles.settingLeft}>
+                    <View
+                      style={[
+                        styles.settingIcon,
+                        { backgroundColor: theme.colors.secondary + "20" },
+                      ]}
+                    >
+                      <Ionicons
+                        name="download"
+                        size={20}
+                        color={theme.colors.textPrimary}
+                      />
+                    </View>
                     <Text
                       style={[
                         styles.settingText,
                         { color: theme.colors.textPrimary },
                       ]}
                     >
-                      Check For Updates
+                      Downloads
                     </Text>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={theme.colors.textSecondary}
+                  />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.settingItem}>
+                  <View style={styles.settingLeft}>
+                    <View
+                      style={[
+                        styles.settingIcon,
+                        { backgroundColor: theme.colors.accent + "20" },
+                      ]}
+                    >
+                      <Ionicons
+                        name="help-circle"
+                        size={20}
+                        color={theme.colors.textPrimary}
+                      />
+                    </View>
                     <Text
                       style={[
                         styles.settingText,
                         { color: theme.colors.textPrimary },
                       ]}
                     >
-                      {appCurrentVersion}
+                      Help & Support
                     </Text>
                   </View>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={theme.colors.textSecondary}
-                />
-              </TouchableOpacity>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={theme.colors.textSecondary}
+                  />
+                </TouchableOpacity>
+              </View>
 
-              <TouchableOpacity style={styles.settingItem}>
-                <View style={styles.settingLeft}>
-                  <View
-                    style={[
-                      styles.settingIcon,
-                      { backgroundColor: theme.colors.secondary + "20" },
-                    ]}
-                  >
-                    <Ionicons
-                      name="download"
-                      size={20}
-                      color={theme.colors.textPrimary}
-                    />
-                  </View>
-                  <Text
-                    style={[
-                      styles.settingText,
-                      { color: theme.colors.textPrimary },
-                    ]}
-                  >
-                    Downloads
-                  </Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={theme.colors.textSecondary}
-                />
-              </TouchableOpacity>
+              <View style={{ height: 100 }} />
+            </ScrollView>
+          </SafeAreaView>
+        </LinearGradient>
+      </View>
 
-              <TouchableOpacity style={styles.settingItem}>
-                <View style={styles.settingLeft}>
-                  <View
-                    style={[
-                      styles.settingIcon,
-                      { backgroundColor: theme.colors.accent + "20" },
-                    ]}
-                  >
-                    <Ionicons
-                      name="help-circle"
-                      size={20}
-                      color={theme.colors.textPrimary}
-                    />
-                  </View>
-                  <Text
-                    style={[
-                      styles.settingText,
-                      { color: theme.colors.textPrimary },
-                    ]}
-                  >
-                    Help & Support
-                  </Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={theme.colors.textSecondary}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View style={{ height: 100 }} />
-          </ScrollView>
-        </SafeAreaView>
-      </LinearGradient>
-    </View>
+      {/* Update Modal */}
+      <UpdateModal
+        visible={showUpdateModal}
+        onClose={() => setShowUpdateModal(false)}
+        isChecking={isCheckingUpdate}
+        hasUpdate={isUpdateAvailable}
+        currentVersion={appCurrentVersion}
+        latestVersion={latestVersion}
+        error={updateError}
+        theme={theme}
+        onCheckUpdate={handleUpdateCheck}
+        hasCheckedOnce={hasCheckedOnce}
+      />
+    </>
   );
 };
 
@@ -491,5 +565,25 @@ const styles = StyleSheet.create({
   settingText: {
     fontSize: 16,
     fontWeight: "500",
+  },
+  settingSubtext: {
+    fontSize: 14,
+    fontWeight: "400",
+    marginTop: 2,
+  },
+  updateTextContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  updateBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 8,
+  },
+  updateBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "600",
   },
 });
