@@ -15,6 +15,8 @@ export const useProfileScreen = () => {
   const [hasCheckedOnce, setHasCheckedOnce] = useState(false);
 
   const [updateUrl, setUpdateUrl] = useState(null);
+  const [downloadStarted, setDownloadStarted] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
 
   const getAppCurrentVersion = () => {
     const currentVersion = DeviceInfo.getVersion();
@@ -109,25 +111,34 @@ export const useProfileScreen = () => {
     console.log("Downloading and installing update from:", updateUrl);
 
     try {
-      const downloadDest = `${RNFS.DownloadDirectoryPath}/RhythmRiseUpdated.apk`;
+      const downloadDest = `${RNFS.DocumentDirectoryPath}/RhythmRiseUpdated.apk`;
       console.log("Downloading to:", downloadDest);
 
+      setDownloadStarted(true);
       const { promise } = RNFS.downloadFile({
         fromUrl: updateUrl,
         toFile: downloadDest,
+        progress: (data) => {
+          const percent = (data.bytesWritten / data.contentLength) * 100;
+          // console.log(`Download progress: ${percent.toFixed(2)}%`);
+          setDownloadProgress(percent.toFixed(2));
+        },
+        progressDivider: 1,
       });
 
       const result = await promise;
 
       if (result.statusCode === 200) {
-        Alert.alert("Download complete", "Starting installation...");
         FileViewer.open(downloadDest, { showOpenWithDialog: true });
       } else {
         Alert.alert("Download failed", `Status code: ${result.statusCode}`);
       }
     } catch (error) {
-      console.error("Error during download and install:", error);
+      console.log("Error during download and install:", error);
       setUpdateError(error.message);
+    } finally {
+      setDownloadStarted(false);
+      setDownloadProgress(0);
     }
   };
 
@@ -140,5 +151,7 @@ export const useProfileScreen = () => {
     hasCheckedOnce,
     checkForUpdates,
     onDownloadAndInstall,
+    downloadStarted,
+    downloadProgress,
   };
 };

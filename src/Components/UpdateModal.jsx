@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   View,
@@ -9,14 +9,12 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  ToastAndroid,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import * as MediaLibrary from "expo-media-library";
-
-import RNFS from "react-native-fs";
-import FileViewer from "react-native-file-viewer";
 
 const { width } = Dimensions.get("window");
 
@@ -32,7 +30,32 @@ const UpdateModal = ({
   onCheckUpdate,
   hasCheckedOnce,
   onDownloadAndInstall,
+  downloadStarted,
+  downloadProgress,
 }) => {
+  useEffect(() => {
+    console.log("Download Progress:", downloadProgress);
+  }, [downloadProgress]);
+  const [permissionGranted, setPermissionGranted] = useState(false);
+  const checkPermissions = async () => {
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status === "granted") {
+        setPermissionGranted(true);
+        return true;
+      } else {
+        setPermissionGranted(false);
+      }
+    } catch (error) {
+      setPermissionGranted(false);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    checkPermissions();
+  }, []);
+
   const handleDownload = async () => {
     if (Platform.OS !== "android") {
       Alert.alert(
@@ -44,57 +67,17 @@ const UpdateModal = ({
     }
 
     try {
-      // Show permission explanation first
-      Alert.alert(
-        "Storage Permission Required",
-        "RhythmRise needs storage permission to download the update file. This permission is only used for downloading and installing app updates.",
-        [
-          {
-            text: "Cancel",
-            style: "cancel",
-            onPress: () => {
-              console.log("User cancelled permission request");
-            },
-          },
-          {
-            text: "Grant Permission",
-            onPress: async () => {
-              console.log("User agreed to grant permission");
-
-              // Request storage permission using Expo
-              const { status } = await MediaLibrary.requestPermissionsAsync();
-
-              if (status === "granted") {
-                console.log("Storage permission granted");
-                Alert.alert(
-                  "Permission Granted",
-                  "Storage permission has been granted successfully. You can now proceed with the download.",
-                  [
-                    {
-                      text: "Start Download",
-                      onPress: () => {
-                        if (onDownloadAndInstall) {
-                          onDownloadAndInstall();
-                        }
-                      },
-                    },
-                  ]
-                );
-              } else {
-                console.log("Storage permission denied");
-                Alert.alert(
-                  "Permission Denied",
-                  "Storage permission is required to download updates. Please grant the permission in your device settings to proceed with the update.",
-                  [{ text: "OK", style: "default" }]
-                );
-              }
-            },
-          },
-        ],
-        {
-          cancelable: false,
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status === "granted") {
+        if (onDownloadAndInstall) {
+          onDownloadAndInstall();
         }
-      );
+      } else {
+        return ToastAndroid.show(
+          "Storage permission is required to download updates.",
+          ToastAndroid.LONG
+        );
+      }
     } catch (error) {
       console.error("Permission request error:", error);
       Alert.alert(
@@ -235,24 +218,72 @@ const UpdateModal = ({
             </View>
           </View>
 
-          <TouchableOpacity
-            style={[
-              styles.downloadButton,
-              { backgroundColor: theme.colors.successColor },
-            ]}
-            onPress={handleDownload}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={[theme.colors.successColor, theme.colors.primary]}
-              style={styles.buttonGradient}
-            >
-              <Ionicons name="key" size={20} color="#FFFFFF" />
-              <Text style={styles.buttonText}>
-                Request Permission & Download
+          {downloadStarted ? (
+            <View style={styles.progressContainer}>
+              <View style={styles.progressHeader}>
+                <Ionicons
+                  name="cloud-download"
+                  size={24}
+                  color={theme.colors.primary}
+                />
+                <Text
+                  style={[
+                    styles.progressTitle,
+                    { color: theme.colors.textPrimary },
+                  ]}
+                >
+                  Downloading Update...
+                </Text>
+              </View>
+
+              <View
+                style={[
+                  styles.progressBarContainer,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.progressBar,
+                    {
+                      backgroundColor: theme.colors.successColor,
+                      width: `${downloadProgress || 0}%`,
+                    },
+                  ]}
+                />
+              </View>
+
+              <Text
+                style={[
+                  styles.progressText,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                {Math.round(downloadProgress || 0)}% Complete
               </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[
+                styles.downloadButton,
+                { backgroundColor: theme.colors.successColor },
+              ]}
+              onPress={handleDownload}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={[theme.colors.successColor, theme.colors.primary]}
+                style={styles.buttonGradient}
+              >
+                <Ionicons name="key" size={20} color="#FFFFFF" />
+                <Text style={styles.buttonText}>
+                  {permissionGranted
+                    ? "Download & Install"
+                    : "Request Permission & Download"}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
         </View>
       );
     }
@@ -499,6 +530,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 8,
+  },
+  progressContainer: {
+    width: "100%",
+    alignItems: "center",
+    paddingVertical: 16,
+  },
+  progressHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  progressTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+  progressBarContainer: {
+    width: "100%",
+    height: 8,
+    borderRadius: 4,
+    overflow: "hidden",
+    marginBottom: 12,
+  },
+  progressBar: {
+    height: "100%",
+    borderRadius: 4,
+    transition: "width 0.3s ease",
+  },
+  progressText: {
+    fontSize: 14,
+    fontWeight: "500",
   },
 });
 
