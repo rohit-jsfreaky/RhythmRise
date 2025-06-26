@@ -364,36 +364,6 @@ const ProfileScreen = () => {
                     <View
                       style={[
                         styles.settingIcon,
-                        { backgroundColor: theme.colors.secondary + "20" },
-                      ]}
-                    >
-                      <Ionicons
-                        name="download"
-                        size={20}
-                        color={theme.colors.textPrimary}
-                      />
-                    </View>
-                    <Text
-                      style={[
-                        styles.settingText,
-                        { color: theme.colors.textPrimary },
-                      ]}
-                    >
-                      Downloads
-                    </Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={20}
-                    color={theme.colors.textSecondary}
-                  />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.settingItem}>
-                  <View style={styles.settingLeft}>
-                    <View
-                      style={[
-                        styles.settingIcon,
                         { backgroundColor: theme.colors.accent + "20" },
                       ]}
                     >
