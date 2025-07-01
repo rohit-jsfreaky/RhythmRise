@@ -16,6 +16,7 @@ import { ThemeProvider, useTheme } from "./src/contexts/ThemeContext";
 import Playlist from "./src/Screens/Playlist/Playlist";
 import TrendingSongs from "./src/Screens/TrendingSongs/TrendingSongs";
 import { PlayerQueueProvider } from "./src/contexts/PlayerQueueContext";
+import OnBoarding from "./src/Screens/Onboarding/OnBoarding";
 
 const Stack = createNativeStackNavigator();
 
@@ -58,7 +59,12 @@ function AppContent() {
       <PlayerQueueProvider>
         <NavigationContainer>
           <StatusBar style="light" backgroundColor={theme.colors.background} />
-          <Stack.Navigator initialRouteName="Tabs">
+          <Stack.Navigator initialRouteName="onboarding">
+            <Stack.Screen
+              name="onboarding"
+              component={OnBoarding}
+              options={{ headerShown: false }}
+            />
             <Stack.Screen
               name="Tabs"
               component={Tabs}
