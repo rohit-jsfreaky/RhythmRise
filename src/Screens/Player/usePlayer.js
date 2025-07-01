@@ -4,6 +4,7 @@ import TrackPlayer, {
   useActiveTrack,
   usePlaybackState,
   Event,
+  RepeatMode,
 } from "react-native-track-player";
 import * as Haptics from "expo-haptics";
 import * as SecureStore from "expo-secure-store";
@@ -46,10 +47,10 @@ export const useplayer = () => {
   }
 
   function extractYouTubeUrl(fullUrl) {
-  const urlObj = new URL(fullUrl);
-  const youtubeUrlEncoded = urlObj.searchParams.get("url");
-  return decodeURIComponent(youtubeUrlEncoded);
-}
+    const urlObj = new URL(fullUrl);
+    const youtubeUrlEncoded = urlObj.searchParams.get("url");
+    return decodeURIComponent(youtubeUrlEncoded);
+  }
 
   const getSongsDetailsYoutube = async (song) => {
     try {
@@ -134,7 +135,6 @@ export const useplayer = () => {
 
   useEffect(() => {
     if (currentSong) {
-
       checkTrackInFavorites();
     }
   }, [currentSong]);
@@ -267,6 +267,16 @@ export const useplayer = () => {
     setRepeatMode((prev) =>
       prev === "off" ? "track" : prev === "track" ? "queue" : "off"
     );
+
+    setTimeout(() => {
+      TrackPlayer.setRepeatMode(
+        repeatMode === "off"
+          ? RepeatMode.Track
+          : repeatMode === "track"
+          ? RepeatMode.Queue
+          : RepeatMode.Off
+      );
+    }, 0);
   };
 
   const openMenu = () => {

@@ -289,8 +289,8 @@ const PlayerScreen = () => {
                 size={28}
                 color={
                   repeatMode !== "off"
-                    ? theme.colors.secondary
-                    : theme.colors.textPrimary + "80"
+                    ? theme.colors.textPrimary
+                    : theme.colors.secondary
                 }
               />
             </TouchableOpacity>
