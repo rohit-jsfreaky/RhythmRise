@@ -10,6 +10,8 @@ export const getSecondsFromDuration = (timeStr) => {
   return mins * 60 + secs;
 };
 
+
+
 export const getBestQualityUrl = (downloadUrls) => {
   const qualityPriority = ["320kbps", "160kbps", "96kbps", "48kbps", "12kbps"];
 

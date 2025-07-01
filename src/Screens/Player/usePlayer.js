@@ -11,6 +11,9 @@ import * as SecureStore from "expo-secure-store";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "../../contexts/ThemeContext";
 import { isFavorite, mmkvStorage, toggleFavorite } from "../../utils/Favorite";
+import { useQueue } from "../../contexts/PlayerQueueContext";
+import { apiBaseUrl } from "../../utils/apiAddress";
+import { getSecondsFromDuration } from "../../utils/songs";
 
 export const useplayer = () => {
   const { position, duration } = useProgress();
@@ -32,18 +35,110 @@ export const useplayer = () => {
   const [trackInFavorites, setTrackInFavorites] = useState(false);
 
   const [currentSong, setCurrentSong] = useState(null);
-
   const route = useRoute();
 
   const { song } = route.params || {};
 
-  useEffect(() => {
-    if (song) {
-      setCurrentSong(song);
-    }
-  }, [song]);
+  function formatSeconds(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  }
 
-  // ActionSheet ref
+  function extractYouTubeUrl(fullUrl) {
+  const urlObj = new URL(fullUrl);
+  const youtubeUrlEncoded = urlObj.searchParams.get("url");
+  return decodeURIComponent(youtubeUrlEncoded);
+}
+
+  const getSongsDetailsYoutube = async (song) => {
+    try {
+      const youtubeUrl = extractYouTubeUrl(song.url);
+      const response = await fetch(
+        `${apiBaseUrl}get-audio-details?url=${encodeURIComponent(youtubeUrl)}`
+      );
+      const data = await response.json();
+
+      if (!data) {
+        return null;
+      }
+      return data;
+    } catch (error) {
+      console.log("Error fetching song details:", error);
+      return null;
+    }
+  };
+
+  const getSongsDetailsJioSavan = async (song) => {
+    try {
+      const response = await fetch(
+        `${apiBaseUrl}/get-songs-details-jio-savan/${song.id}`
+      );
+      const data = await response.json();
+      if (!data.data) {
+        return null;
+      }
+
+      const transformedSong = {
+        artist: data.data.author,
+        uploader: data.data.author,
+        duration: formatSeconds(data.data.duration),
+        id: data.data.id,
+        title: data.data.title,
+        source: "jiosavan",
+        thumbnail: data.data.thumbnail,
+        url: data.data.id,
+        downloadUrls: data.data.downloadUrl,
+      };
+
+      return transformedSong;
+    } catch (error) {
+      console.log("Error fetching song details:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const listenTrackChange = TrackPlayer.addEventListener(
+      Event.PlaybackActiveTrackChanged,
+      async (event) => {
+        // .index is the newly active track's index
+        const currentTrackPlaying = event.track;
+        if (
+          (currentTrackPlaying &&
+            currentTrackPlaying.url.includes("youtube")) ||
+          currentTrackPlaying.url.includes("youtu.be")
+        ) {
+          const fetchedSong = await getSongsDetailsYoutube(currentTrackPlaying);
+          if (!fetchedSong) {
+            return;
+          }
+          setCurrentSong(fetchedSong);
+          return;
+        } else {
+          const fetchedSong = await getSongsDetailsJioSavan(
+            currentTrackPlaying
+          );
+
+          if (!fetchedSong) {
+            return;
+          }
+          setCurrentSong(fetchedSong);
+        }
+      }
+    );
+    return () => {
+      listenTrackChange?.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (currentSong) {
+
+      checkTrackInFavorites();
+    }
+  }, [currentSong]);
+
   const actionSheetRef = useRef(null);
 
   const loadQueue = async () => {
@@ -109,7 +204,7 @@ export const useplayer = () => {
 
     const stored = mmkvStorage.getString("favorites");
     const favorites = stored ? JSON.parse(stored) : [];
-    console.log("Stored favorites:", favorites);
+
     const favoriteTrack = await isFavorite(currentSong, favorites);
 
     setTrackInFavorites(favoriteTrack);
@@ -261,6 +356,8 @@ export const useplayer = () => {
 
   const toggleTrackInFavorites = async (song) => {
     if (!currentSong) return;
+
+    console.log("Toggling favorite for track:", currentSong);
 
     const stored = mmkvStorage.getString("favorites");
     let favorites = stored ? JSON.parse(stored) : [];
